@@ -1,3 +1,4 @@
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Student, Course, Certificate, AttendanceRecord, SystemSettings } from '../types';
 
 const STORAGE_KEYS = {
@@ -58,7 +59,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
   directorTitle: 'Executive Director & Co-Founder',
   coordinatorName: 'Vivek Kumar',
   coordinatorTitle: 'Academic Director & IIT-H Alumnus',
-  adminPassword: 'admin', // default PIN / password
+  adminPassword: 'admin',
   emailJsServiceId: '',
   emailJsTemplateId: '',
   emailJsPublicKey: '',
@@ -172,7 +173,6 @@ const DEFAULT_CERTIFICATES: Certificate[] = [
   },
 ];
 
-// Helper to generate seed attendance records
 function generateInitialAttendance(): AttendanceRecord[] {
   const records: AttendanceRecord[] = [];
   const dates = [
@@ -190,7 +190,6 @@ function generateInitialAttendance(): AttendanceRecord[] {
 
   dates.forEach((date, dateIndex) => {
     students.forEach((student) => {
-      // Create realistic attendance pattern (mostly present, occasional absent or late)
       let status: 'present' | 'absent' | 'late' | 'excused' = 'present';
       if ((dateIndex === 3 && student.id === 'std-1') || (dateIndex === 7 && student.id === 'std-3')) {
         status = 'absent';
@@ -216,6 +215,203 @@ function generateInitialAttendance(): AttendanceRecord[] {
 }
 
 class StorageService {
+  private supabaseClient: SupabaseClient | null = null;
+
+  constructor() {
+    this.initSupabase();
+    // Auto-fetch latest cloud records in background if Supabase is configured
+    this.fetchCloudDataInBackground();
+  }
+
+  // Initialize Supabase client if keys are present (either from settings or .env)
+  public initSupabase(): SupabaseClient | null {
+    const settings = this.getSettings();
+    const url = settings.supabaseUrl || (import.meta as any).env?.VITE_SUPABASE_URL || '';
+    const key = settings.supabaseAnonKey || (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+
+    if (url && key && url.startsWith('http')) {
+      try {
+        this.supabaseClient = createClient(url, key);
+        return this.supabaseClient;
+      } catch (err) {
+        console.warn('Supabase initialization failed:', err);
+      }
+    }
+    this.supabaseClient = null;
+    return null;
+  }
+
+  public isCloudConnected(): boolean {
+    return !!this.supabaseClient;
+  }
+
+  public async testSupabaseConnection(): Promise<{ success: boolean; message: string }> {
+    const client = this.initSupabase();
+    if (!client) {
+      return { success: false, message: 'Please enter a valid Supabase Project URL and Anon Key.' };
+    }
+    try {
+      const { data, error } = await client.from('courses').select('id').limit(1);
+      if (error) {
+        return { success: false, message: `Connection error: ${error.message}. Please check your SQL schema setup.` };
+      }
+      return { success: true, message: 'Successfully connected to Supabase Cloud Database!' };
+    } catch (e: any) {
+      return { success: false, message: `Connection failed: ${e.message}` };
+    }
+  }
+
+  private async fetchCloudDataInBackground() {
+    if (!this.supabaseClient) return;
+
+    try {
+      // 1. Fetch Students
+      const { data: cloudStudents } = await this.supabaseClient.from('students').select('*');
+      if (cloudStudents && cloudStudents.length > 0) {
+        const formatted: Student[] = cloudStudents.map(cs => ({
+          id: cs.id,
+          enrollmentNumber: cs.enrollment_number,
+          firstName: cs.first_name,
+          lastName: cs.last_name,
+          fullName: cs.full_name,
+          dateOfBirth: cs.date_of_birth,
+          email: cs.email,
+          phone: cs.phone,
+          courseId: cs.course_id,
+          courseName: cs.course_name,
+          batch: cs.batch,
+          status: cs.status,
+          createdAt: cs.created_at,
+        }));
+        this.setItem(STORAGE_KEYS.STUDENTS, formatted);
+      }
+
+      // 2. Fetch Certificates
+      const { data: cloudCerts } = await this.supabaseClient.from('certificates').select('*');
+      if (cloudCerts && cloudCerts.length > 0) {
+        const formatted: Certificate[] = cloudCerts.map(cc => ({
+          id: cc.id,
+          studentId: cc.student_id,
+          enrollmentNumber: cc.enrollment_number,
+          studentName: cc.student_name,
+          lastName: cc.last_name,
+          dateOfBirth: cc.date_of_birth,
+          studentEmail: cc.student_email,
+          courseId: cc.course_id,
+          courseName: cc.course_name,
+          issueDate: cc.issue_date,
+          completionDate: cc.completion_date,
+          grade: cc.grade,
+          status: cc.status,
+          verificationHash: cc.verification_hash,
+          emailSent: cc.email_sent,
+          emailSentAt: cc.email_sent_at,
+          issuedBy: cc.issued_by,
+          notes: cc.notes,
+        }));
+        this.setItem(STORAGE_KEYS.CERTIFICATES, formatted);
+      }
+
+      // 3. Fetch Attendance
+      const { data: cloudAtt } = await this.supabaseClient.from('attendance').select('*');
+      if (cloudAtt && cloudAtt.length > 0) {
+        const formatted: AttendanceRecord[] = cloudAtt.map(ca => ({
+          id: ca.id,
+          studentId: ca.student_id,
+          enrollmentNumber: ca.enrollment_number,
+          courseId: ca.course_id,
+          date: ca.date,
+          status: ca.status,
+          topicCovered: ca.topic_covered,
+          markedBy: ca.marked_by,
+          createdAt: ca.created_at,
+        }));
+        this.setItem(STORAGE_KEYS.ATTENDANCE, formatted);
+      }
+    } catch (err) {
+      console.warn('Background Supabase sync skipped:', err);
+    }
+  }
+
+  // Sync all local demo data to Supabase in one click
+  public async syncAllToSupabase(): Promise<{ success: boolean; message: string }> {
+    const client = this.initSupabase();
+    if (!client) {
+      return { success: false, message: 'Supabase client not initialized.' };
+    }
+
+    try {
+      // Upsert Courses
+      const courses = this.getCourses().map(c => ({
+        id: c.id,
+        title: c.title,
+        code: c.code,
+        duration: c.duration,
+        description: c.description,
+        instructor: c.instructor,
+        total_sessions: c.totalSessions,
+      }));
+      await client.from('courses').upsert(courses);
+
+      // Upsert Students
+      const students = this.getStudents().map(s => ({
+        id: s.id,
+        enrollment_number: s.enrollmentNumber,
+        first_name: s.firstName,
+        last_name: s.lastName,
+        full_name: s.fullName,
+        date_of_birth: s.dateOfBirth,
+        email: s.email,
+        phone: s.phone,
+        course_id: s.courseId,
+        course_name: s.courseName,
+        batch: s.batch,
+        status: s.status,
+      }));
+      await client.from('students').upsert(students);
+
+      // Upsert Certificates
+      const certificates = this.getCertificates().map(c => ({
+        id: c.id,
+        student_id: c.studentId,
+        enrollment_number: c.enrollmentNumber,
+        student_name: c.studentName,
+        last_name: c.lastName,
+        date_of_birth: c.dateOfBirth,
+        student_email: c.studentEmail,
+        course_id: c.courseId,
+        course_name: c.courseName,
+        issue_date: c.issueDate,
+        completion_date: c.completionDate,
+        grade: c.grade,
+        status: c.status,
+        verification_hash: c.verificationHash,
+        email_sent: c.emailSent,
+        email_sent_at: c.emailSentAt,
+        issued_by: c.issuedBy,
+        notes: c.notes,
+      }));
+      await client.from('certificates').upsert(certificates);
+
+      // Upsert Attendance
+      const attendance = this.getAttendance().map(a => ({
+        id: a.id,
+        student_id: a.studentId,
+        enrollment_number: a.enrollmentNumber,
+        course_id: a.courseId,
+        date: a.date,
+        status: a.status,
+        topic_covered: a.topicCovered,
+        marked_by: a.markedBy,
+      }));
+      await client.from('attendance').upsert(attendance);
+
+      return { success: true, message: 'All student, certificate, and attendance records successfully uploaded to Supabase!' };
+    } catch (e: any) {
+      return { success: false, message: `Sync error: ${e.message}` };
+    }
+  }
+
   private getItem<T>(key: string, defaultValue: T): T {
     try {
       const data = localStorage.getItem(key);
@@ -246,6 +442,7 @@ class StorageService {
     const current = this.getSettings();
     const updated = { ...current, ...settings };
     this.setItem(STORAGE_KEYS.SETTINGS, updated);
+    this.initSupabase();
     return updated;
   }
 
@@ -262,6 +459,19 @@ class StorageService {
     };
     courses.push(newCourse);
     this.setItem(STORAGE_KEYS.COURSES, courses);
+
+    if (this.supabaseClient) {
+      this.supabaseClient.from('courses').insert({
+        id: newCourse.id,
+        title: newCourse.title,
+        code: newCourse.code,
+        duration: newCourse.duration,
+        description: newCourse.description,
+        instructor: newCourse.instructor,
+        total_sessions: newCourse.totalSessions,
+      }).then();
+    }
+
     return newCourse;
   }
 
@@ -289,6 +499,25 @@ class StorageService {
     };
     students.push(newStudent);
     this.setItem(STORAGE_KEYS.STUDENTS, students);
+
+    // Sync to Supabase in real-time
+    if (this.supabaseClient) {
+      this.supabaseClient.from('students').insert({
+        id: newStudent.id,
+        enrollment_number: newStudent.enrollmentNumber,
+        first_name: newStudent.firstName,
+        last_name: newStudent.lastName,
+        full_name: newStudent.fullName,
+        date_of_birth: newStudent.dateOfBirth,
+        email: newStudent.email,
+        phone: newStudent.phone,
+        course_id: newStudent.courseId,
+        course_name: newStudent.courseName,
+        batch: newStudent.batch,
+        status: newStudent.status,
+      }).then();
+    }
+
     return newStudent;
   }
 
@@ -307,6 +536,19 @@ class StorageService {
     };
     students[index] = updated;
     this.setItem(STORAGE_KEYS.STUDENTS, students);
+
+    if (this.supabaseClient) {
+      this.supabaseClient.from('students').update({
+        first_name: updated.firstName,
+        last_name: updated.lastName,
+        full_name: updated.fullName,
+        date_of_birth: updated.dateOfBirth,
+        email: updated.email,
+        phone: updated.phone,
+        status: updated.status,
+      }).eq('id', id).then();
+    }
+
     return updated;
   }
 
@@ -314,12 +556,15 @@ class StorageService {
     let students = this.getStudents();
     students = students.filter(s => s.id !== id);
     this.setItem(STORAGE_KEYS.STUDENTS, students);
+
+    if (this.supabaseClient) {
+      this.supabaseClient.from('students').delete().eq('id', id).then();
+    }
     return true;
   }
 
   // --- Certificates ---
   // ZERO SERVER STORAGE: Only metadata is stored.
-  // The actual certificate graphic/PDF is rendered dynamically on the fly!
   getCertificates(): Certificate[] {
     return this.getItem<Certificate[]>(STORAGE_KEYS.CERTIFICATES, DEFAULT_CERTIFICATES);
   }
@@ -359,7 +604,6 @@ class StorageService {
     const certId = params.customCertId || this.generateCertificateId(course.code);
     const today = new Date().toISOString().split('T')[0];
 
-    // Cryptographic-like verification signature hash
     const payload = `${certId}|${student.enrollmentNumber}|${student.fullName}|${course.title}|${params.issueDate || today}`;
     const mockHash = 'sha256-' + btoa(payload).replace(/[^a-zA-Z0-9]/g, '').slice(0, 24).toLowerCase();
 
@@ -384,7 +628,6 @@ class StorageService {
     };
 
     const certificates = this.getCertificates();
-    // If certificate for this student and course already exists, replace or append
     const existingIndex = certificates.findIndex(c => c.id === certId);
     if (existingIndex >= 0) {
       certificates[existingIndex] = newCertificate;
@@ -393,6 +636,30 @@ class StorageService {
     }
 
     this.setItem(STORAGE_KEYS.CERTIFICATES, certificates);
+
+    // Sync to Supabase in real-time
+    if (this.supabaseClient) {
+      this.supabaseClient.from('certificates').upsert({
+        id: newCertificate.id,
+        student_id: newCertificate.studentId,
+        enrollment_number: newCertificate.enrollmentNumber,
+        student_name: newCertificate.studentName,
+        last_name: newCertificate.lastName,
+        date_of_birth: newCertificate.dateOfBirth,
+        student_email: newCertificate.studentEmail,
+        course_id: newCertificate.courseId,
+        course_name: newCertificate.courseName,
+        issue_date: newCertificate.issueDate,
+        completion_date: newCertificate.completionDate,
+        grade: newCertificate.grade,
+        status: newCertificate.status,
+        verification_hash: newCertificate.verificationHash,
+        email_sent: newCertificate.emailSent,
+        issued_by: newCertificate.issuedBy,
+        notes: newCertificate.notes,
+      }).then();
+    }
+
     return newCertificate;
   }
 
@@ -403,11 +670,17 @@ class StorageService {
       certificates[index].emailSent = emailSent;
       certificates[index].emailSentAt = new Date().toISOString();
       this.setItem(STORAGE_KEYS.CERTIFICATES, certificates);
+
+      if (this.supabaseClient) {
+        this.supabaseClient.from('certificates').update({
+          email_sent: emailSent,
+          email_sent_at: certificates[index].emailSentAt,
+        }).eq('id', certId).then();
+      }
     }
   }
 
   // Verification matching logic:
-  // Requires: Course Type + Certificate ID + (Date of Birth OR Last Name)
   verifyCertificate(courseId: string, certificateId: string, dobOrLastName: string): {
     valid: boolean;
     certificate?: Certificate;
@@ -423,7 +696,6 @@ class StorageService {
       };
     }
 
-    // Check course match if courseId is provided (or "all" / matching course)
     if (courseId && courseId !== 'all' && cert.courseId !== courseId) {
       return {
         valid: false,
@@ -438,12 +710,10 @@ class StorageService {
       };
     }
 
-    // Verify Date of Birth OR Last Name
     const query = dobOrLastName.trim().toLowerCase();
     const studentLastName = (cert.lastName || '').trim().toLowerCase();
     const certDob = (cert.dateOfBirth || '').trim().toLowerCase();
 
-    // Support YYYY-MM-DD or DD/MM/YYYY or simple string compare
     const matchDob = certDob === query || certDob.replace(/-/g, '') === query.replace(/[^0-9]/g, '');
     const matchLastName = studentLastName === query;
 
@@ -477,7 +747,6 @@ class StorageService {
     const savedRecords: AttendanceRecord[] = [];
 
     params.records.forEach(r => {
-      // Check if attendance already logged for this student and date
       const recordId = `att-${r.studentId}-${params.date}`;
       const existingIdx = allAttendance.findIndex(a => a.studentId === r.studentId && a.date === params.date);
 
@@ -502,10 +771,25 @@ class StorageService {
     });
 
     this.setItem(STORAGE_KEYS.ATTENDANCE, allAttendance);
+
+    // Sync to Supabase in real-time
+    if (this.supabaseClient) {
+      const rows = savedRecords.map(s => ({
+        id: s.id,
+        student_id: s.studentId,
+        enrollment_number: s.enrollmentNumber,
+        course_id: s.courseId,
+        date: s.date,
+        status: s.status,
+        topic_covered: s.topicCovered,
+        marked_by: s.markedBy,
+      }));
+      this.supabaseClient.from('attendance').upsert(rows).then();
+    }
+
     return savedRecords;
   }
 
-  // Student Attendance Query by Enrollment Number, Cert ID, or Email
   getStudentAttendance(query: string): {
     student?: Student;
     records: AttendanceRecord[];
@@ -523,15 +807,12 @@ class StorageService {
     const students = this.getStudents();
     const certs = this.getCertificates();
 
-    // Try finding student by enrollment number
     let student = students.find(s => s.enrollmentNumber.trim().toUpperCase() === clean);
 
-    // If not found, try finding by email
     if (!student) {
       student = students.find(s => s.email.trim().toLowerCase() === query.trim().toLowerCase());
     }
 
-    // If not found, try finding by Certificate ID
     if (!student) {
       const matchingCert = certs.find(c => c.id.trim().toUpperCase() === clean);
       if (matchingCert) {
@@ -557,7 +838,6 @@ class StorageService {
     const excused = studentRecords.filter(r => r.status === 'excused').length;
     const absent = studentRecords.filter(r => r.status === 'absent').length;
 
-    // Weight late attendance as 0.5 or present
     const effectiveAttended = present + (late * 0.75) + excused;
     const percentage = total > 0 ? Math.round((effectiveAttended / total) * 100) : 100;
 
@@ -582,7 +862,7 @@ class StorageService {
     };
   }
 
-  // --- Export & Import (100% Free Backup & Restore) ---
+  // --- Export & Import ---
   exportAllDataJson(): string {
     const data = {
       version: '1.0',

@@ -76,8 +76,8 @@ ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 
--- Public Read Policies (Allow students & public to verify certificates & check attendance)
-CREATE POLICY "Allow public read on certificates" ON public.certificates FOR SELECT USING (true);
-CREATE POLICY "Allow public read on courses" ON public.courses FOR SELECT USING (true);
-CREATE POLICY "Allow public read on attendance" ON public.attendance FOR SELECT USING (true);
-CREATE POLICY "Allow public read on students" ON public.students FOR SELECT USING (true);
+-- Allow unrestricted read & write for portal operations using Anon Key
+CREATE POLICY "Allow public all on certificates" ON public.certificates FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on courses" ON public.courses FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on attendance" ON public.attendance FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on students" ON public.students FOR ALL USING (true) WITH CHECK (true);

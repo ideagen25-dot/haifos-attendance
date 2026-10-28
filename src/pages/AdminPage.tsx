@@ -1127,6 +1127,94 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                 </div>
               </div>
 
+              {/* Free Supabase Cloud Database Settings */}
+              <div className="pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                      Supabase Cloud PostgreSQL Database (Multi-Device Live Sync)
+                    </h4>
+                    {storage.isCloudConnected() ? (
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-md flex items-center gap-1">
+                        <Check className="w-3 h-3 text-emerald-600" /> LIVE CLOUD CONNECTED
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">
+                        LOCAL / OFFLINE MODE
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-green-700 font-semibold bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                    100% Free Forever
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 mb-3">
+                  Connect your free Supabase database so when Admin posts attendance or issues certificates from one device, any student on any smartphone or computer in the world sees the updates live!
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">
+                      Supabase Project URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://your-project.supabase.co"
+                      value={settingsForm.supabaseUrl || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, supabaseUrl: e.target.value })}
+                      className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">
+                      Supabase Anon (Public) Key
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      value={settingsForm.supabaseAnonKey || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, supabaseAnonKey: e.target.value })}
+                      className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const res = await storage.testSupabaseConnection();
+                      if (res.success) {
+                        notifySuccess(res.message);
+                      } else {
+                        alert(res.message);
+                      }
+                    }}
+                    className="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-xl border border-gray-300 transition-colors"
+                  >
+                    Test Cloud Connection
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (window.confirm('Upload all current local students, certificates, and attendance logs to your Supabase cloud database?')) {
+                        const res = await storage.syncAllToSupabase();
+                        if (res.success) {
+                          notifySuccess(res.message);
+                        } else {
+                          alert(res.message);
+                        }
+                      }
+                    }}
+                    className="px-3.5 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold rounded-xl border border-brand-200 transition-colors"
+                  >
+                    Sync All Local Data to Supabase (1-Click)
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-2">
                 <button
                   type="submit"
