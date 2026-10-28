@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-gray-900 font-sans antialiased;
+  }
+}
+
+/* Certificate Styles */
+.font-cert-title {
+  font-family: 'Cinzel', serif;
+}
+
+.font-cert-name {
+  font-family: 'Cinzel', 'Playfair Display', serif;
+}
+
+/* Print optimizations for dynamic certificates */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #certificate-to-print, #certificate-to-print * {
+    visibility: visible;
+  }
+  #certificate-to-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Subtle decorative patterns */
+.bg-grid-pattern {
+  background-size: 24px 24px;
+  background-image: linear-gradient(to right, rgba(12, 96, 58, 0.04) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(12, 96, 58, 0.04) 1px, transparent 1px);
+}
+
+.bg-dots-pattern {
+  background-image: radial-gradient(rgba(12, 96, 58, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
