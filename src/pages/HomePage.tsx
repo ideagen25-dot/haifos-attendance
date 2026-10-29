@@ -200,7 +200,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
           {/* Card 2: Student Attendance */}
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-premium hover:border-brand-200 transition-all duration-300 flex flex-col justify-between group">
             <div>
-              <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <CalendarCheck className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-black text-gray-950 mb-3">
@@ -213,15 +213,15 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
               
               <ul className="space-y-2.5 text-xs text-gray-600 mb-8">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-brand-600 flex-shrink-0" />
                   <span>Admin daily attendance posting with 1-click batch toggles</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-brand-600 flex-shrink-0" />
                   <span>Student query by Enrollment Number, Certificate ID, or Email</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-brand-600 flex-shrink-0" />
                   <span>Live percentage indicators (Eligible vs Warning status)</span>
                 </li>
               </ul>
@@ -229,7 +229,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
 
             <button
               onClick={() => setActiveTab('attendance')}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 bg-gray-900 hover:bg-black text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-brand-600/20"
             >
               <span>Launch Attendance Portal</span>
               <ArrowRight className="w-4 h-4" />
