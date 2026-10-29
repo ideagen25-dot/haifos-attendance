@@ -293,7 +293,7 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
         <div className="space-y-8 animate-fadeIn">
           
           {/* Verified Official Badge Banner */}
-          <div className="max-w-5xl mx-auto bg-gradient-to-r from-emerald-50 via-teal-50 to-green-50 border-2 border-emerald-300 rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="max-w-5xl mx-auto bg-gradient-to-r from-brand-50 via-sky-50 to-blue-50 border-2 border-brand-300 rounded-3xl p-6 sm:p-8 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               
               <div className="flex items-center gap-4 text-center sm:text-left">
@@ -302,10 +302,10 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
                 </div>
                 <div>
                   <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
-                    <span className="px-3 py-1 bg-emerald-600 text-white text-[11px] font-black rounded-full uppercase tracking-wider">
+                    <span className="px-3 py-1 bg-brand-600 text-white text-[11px] font-black rounded-full uppercase tracking-wider">
                       Official Record Confirmed
                     </span>
-                    <span className="text-xs text-emerald-800 font-mono font-semibold">
+                    <span className="text-xs text-brand-800 font-mono font-semibold">
                       Status: {verifiedCert.status.toUpperCase()}
                     </span>
                   </div>
@@ -319,10 +319,10 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
                 </div>
               </div>
 
-              <div className="text-center sm:text-right text-xs text-gray-600 font-mono border-t sm:border-t-0 sm:border-l border-emerald-200 pt-3 sm:pt-0 sm:pl-6">
+              <div className="text-center sm:text-right text-xs text-gray-600 font-mono border-t sm:border-t-0 sm:border-l border-brand-200 pt-3 sm:pt-0 sm:pl-6">
                 <div>Registry ID: <strong>{verifiedCert.id}</strong></div>
                 <div className="text-[11px] text-gray-500 mt-0.5">Enrollment: {verifiedCert.enrollmentNumber}</div>
-                <div className="text-[10px] text-emerald-700 mt-1 font-bold">Zero-Storage Live Re-generation</div>
+                <div className="text-[10px] text-brand-700 mt-1 font-bold">Zero-Storage Live Re-generation</div>
               </div>
 
             </div>

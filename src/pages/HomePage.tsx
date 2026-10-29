@@ -102,7 +102,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
                         <div className="text-[11px] text-[#1a5487] font-semibold">Live On-the-Fly Generation</div>
                       </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-brand-50 text-brand-700 text-[10px] font-bold rounded-full border border-brand-200">
                       <CheckCircle2 className="w-3 h-3" /> VERIFIED
                     </span>
                   </div>
@@ -122,7 +122,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Attendance:</span>
-                      <span className="font-bold text-emerald-700">92% (Eligible)</span>
+                      <span className="font-bold text-brand-700">92% (Eligible)</span>
                     </div>
                   </div>
 
@@ -251,7 +251,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
             <h3 className="text-3xl font-black tracking-tight text-white">
               Automated Student Onboarding, Approvals &amp; Email Dispatch
             </h3>
-            <p className="text-sm text-emerald-100 leading-relaxed">
+            <p className="text-sm text-sky-100 leading-relaxed">
               Add student profiles, approve certificates with a single click, and automatically email them the official certificate notification and direct verification link.
             </p>
             <div className="pt-2">

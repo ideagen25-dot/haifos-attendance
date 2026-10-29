@@ -123,8 +123,8 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
       {showActions && (
         <div className="no-print flex flex-wrap items-center justify-between gap-3 w-full max-w-5xl mb-6 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-800 text-xs font-semibold rounded-full border border-green-200">
-              <ShieldCheck className="w-4 h-4 text-green-600" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-200">
+              <ShieldCheck className="w-4 h-4 text-brand-600" />
               Verified Authenticity
             </span>
             <span className="text-xs text-gray-500 font-mono hidden sm:inline">
@@ -138,7 +138,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               title="Copy public verification link"
             >
-              {copiedLink ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-brand-600" /> : <Copy className="w-3.5 h-3.5" />}
               {copiedLink ? 'Copied Link!' : 'Copy Link'}
             </button>
 
@@ -161,7 +161,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
             <button
               onClick={handleDownloadPng}
               disabled={isExporting}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-800 bg-brand-50 hover:bg-brand-100 rounded-lg border border-brand-200 transition-colors disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
               PNG

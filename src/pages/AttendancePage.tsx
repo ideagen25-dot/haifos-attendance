@@ -70,8 +70,8 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ settings, setAct
     switch (status) {
       case 'present':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Present
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-100 text-brand-800 text-xs font-bold rounded-full">
+            <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" /> Present
           </span>
         );
       case 'late':
@@ -243,7 +243,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ settings, setAct
                 </div>
                 <div className="mt-1">
                   {stats.percentage >= 75 ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-black text-green-700 bg-green-100 px-3 py-1 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs font-black text-brand-700 bg-brand-100 px-3 py-1 rounded-full">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Eligible for Certificate
                     </span>
                   ) : (
@@ -269,8 +269,8 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ settings, setAct
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm text-center">
-              <div className="text-2xl font-black text-green-600">{stats.present}</div>
-              <div className="text-xs text-green-800 font-semibold uppercase tracking-wider mt-1">Present</div>
+              <div className="text-2xl font-black text-brand-600">{stats.present}</div>
+              <div className="text-xs text-brand-800 font-semibold uppercase tracking-wider mt-1">Present</div>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm text-center">

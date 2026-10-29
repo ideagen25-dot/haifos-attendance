@@ -443,14 +443,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
 
       {/* Action Notification Banner */}
       {actionSuccessMsg && (
-        <div className="p-4 bg-emerald-50 border-2 border-emerald-300 rounded-2xl flex items-center justify-between gap-3 text-emerald-900 text-sm shadow-sm animate-fadeIn">
+        <div className="p-4 bg-brand-50 border-2 border-brand-300 rounded-2xl flex items-center justify-between gap-3 text-brand-900 text-sm shadow-sm animate-fadeIn">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-brand-600 flex-shrink-0" />
             <span className="font-semibold">{actionSuccessMsg}</span>
           </div>
           <button
             onClick={() => setActionSuccessMsg('')}
-            className="text-emerald-700 hover:text-emerald-900 text-xs font-bold uppercase"
+            className="text-brand-700 hover:text-brand-900 text-xs font-bold uppercase"
           >
             Dismiss
           </button>
@@ -474,7 +474,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
             <Award className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-3xl font-black text-gray-900 mt-2">{certificates.length}</div>
-          <div className="text-[11px] text-emerald-600 font-semibold mt-1">Zero server file storage</div>
+          <div className="text-[11px] text-brand-600 font-semibold mt-1">Zero server file storage</div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
@@ -489,7 +489,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Hosting Cost</span>
-            <span className="px-2 py-0.5 bg-green-100 text-green-800 text-[10px] font-black rounded-md">FREE</span>
+            <span className="px-2 py-0.5 bg-brand-100 text-brand-800 text-[10px] font-black rounded-md">FREE</span>
           </div>
           <div className="text-3xl font-black text-brand-700 mt-2">$0.00</div>
           <div className="text-[11px] text-gray-400 mt-1">Netlify + GitHub ready</div>
@@ -639,8 +639,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase ${
                               s.status === 'completed'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-blue-100 text-blue-800'
+                                ? 'bg-brand-100 text-brand-800'
+                                : 'bg-sky-100 text-sky-800'
                             }`}>
                               {s.status}
                             </span>
@@ -740,8 +740,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {cert.emailSent ? (
-                            <span className="inline-flex items-center gap-1 text-green-700 font-bold text-[11px]">
-                              <CheckCheck className="w-3.5 h-3.5 text-green-600" /> Dispatched
+                            <span className="inline-flex items-center gap-1 text-brand-700 font-bold text-[11px]">
+                              <CheckCheck className="w-3.5 h-3.5 text-brand-600" /> Dispatched
                             </span>
                           ) : (
                             <span className="text-gray-400 text-[11px]">Pending</span>
@@ -759,7 +759,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
 
                           <button
                             onClick={() => setEmailPreviewCert(cert)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-200 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 font-bold rounded-lg border border-brand-200 transition-colors"
                             title="Preview / Send Automated Email Template"
                           >
                             <Mail className="w-3.5 h-3.5" />
@@ -845,7 +845,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                 <button
                   type="button"
                   onClick={() => handleMarkAll('present')}
-                  className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold rounded-lg border border-green-200 transition-colors"
+                  className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold rounded-lg border border-brand-200 transition-colors"
                 >
                   Mark All Present
                 </button>
@@ -908,7 +908,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                                     className={`px-3 py-1 rounded-lg text-[11px] font-bold capitalize transition-all ${
                                       currentStatus === status
                                         ? status === 'present'
-                                          ? 'bg-green-600 text-white shadow-sm'
+                                          ? 'bg-brand-600 text-white shadow-sm'
                                           : status === 'late'
                                           ? 'bg-amber-500 text-white shadow-sm'
                                           : status === 'absent'
@@ -943,7 +943,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
           {/* Zero-Cost Deployment Guide Card */}
           <div className="bg-gradient-to-r from-brand-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg space-y-4">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-brand-500/30 text-emerald-300 text-xs font-bold rounded-full uppercase tracking-wider border border-brand-400/30">
+              <span className="px-3 py-1 bg-brand-500/30 text-sky-200 text-xs font-bold rounded-full uppercase tracking-wider border border-brand-400/30">
                 100% Free Hosting &bull; Netlify + GitHub
               </span>
             </div>
@@ -960,21 +960,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-xs">
               <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
-                <div className="font-bold text-emerald-300 mb-1">Step 1: Push to GitHub</div>
+                <div className="font-bold text-sky-300 mb-1">Step 1: Push to GitHub</div>
                 <p className="text-slate-300 text-[11px] leading-relaxed">
                   Initialize git and push this folder to your free GitHub account repository.
                 </p>
               </div>
 
               <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
-                <div className="font-bold text-emerald-300 mb-1">Step 2: Connect to Netlify</div>
+                <div className="font-bold text-sky-300 mb-1">Step 2: Connect to Netlify</div>
                 <p className="text-slate-300 text-[11px] leading-relaxed">
                   Sign in to Netlify (Free tier). Click "Add new site" &rarr; "Import an existing project from GitHub".
                 </p>
               </div>
 
               <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
-                <div className="font-bold text-emerald-300 mb-1">Step 3: Instant Deploy ($0)</div>
+                <div className="font-bold text-sky-300 mb-1">Step 3: Instant Deploy ($0)</div>
                 <p className="text-slate-300 text-[11px] leading-relaxed">
                   Netlify reads <code>netlify.toml</code>, runs <code>npm run build</code>, and deploys your custom domain for $0.00!
                 </p>
@@ -1067,7 +1067,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                   <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
                     Automated Free EmailJS Dispatch (Optional)
                   </h4>
-                  <span className="text-[10px] text-green-700 font-semibold bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                  <span className="text-[10px] text-brand-700 font-semibold bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
                     200 Free Emails / Month
                   </span>
                 </div>
@@ -1125,8 +1125,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                       Supabase Cloud PostgreSQL Database (Multi-Device Live Sync)
                     </h4>
                     {storage.isCloudConnected() ? (
-                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-md flex items-center gap-1">
-                        <Check className="w-3 h-3 text-emerald-600" /> LIVE CLOUD CONNECTED
+                      <span className="px-2 py-0.5 bg-brand-100 text-brand-800 text-[10px] font-black rounded-md flex items-center gap-1">
+                        <Check className="w-3 h-3 text-brand-600" /> LIVE CLOUD CONNECTED
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">
@@ -1134,7 +1134,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-green-700 font-semibold bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                  <span className="text-[10px] text-brand-700 font-semibold bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
                     100% Free Forever
                   </span>
                 </div>
@@ -1530,8 +1530,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
                 </div>
               </div>
 
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-start gap-2">
-                <CheckCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div className="p-3 bg-brand-50 border border-brand-200 rounded-xl text-xs text-brand-900 flex items-start gap-2">
+                <CheckCheck className="w-4 h-4 text-brand-600 flex-shrink-0 mt-0.5" />
                 <span>
                   <strong>Completely Automated:</strong> Upon clicking approve, a unique Certificate ID is created and the standardized HTML certificate email will be immediately sent to the student!
                 </span>

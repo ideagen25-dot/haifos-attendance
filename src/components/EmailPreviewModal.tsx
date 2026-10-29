@@ -46,10 +46,10 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
         {/* Modal Header */}
         <div className="px-6 py-4 bg-brand-700 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Mail className="w-5 h-5 text-emerald-300" />
+            <Mail className="w-5 h-5 text-sky-200" />
             <div>
               <h3 className="font-bold text-base leading-tight">Send Certificate Email</h3>
-              <p className="text-[11px] text-emerald-200">Pre-filled in your email client &bull; 1-click send</p>
+              <p className="text-[11px] text-sky-100">Pre-filled in your email client &bull; 1-click send</p>
             </div>
           </div>
           <button
@@ -91,7 +91,7 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
             onClick={handleCopyBody}
             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
           >
-            {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="w-4 h-4 text-brand-600" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Copied Message' : 'Copy Message'}
           </button>
 
