@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Student, Course, Certificate, AttendanceRecord, SystemSettings } from '../types';
 import { storage } from '../services/storage';
-import { sendAutomatedCertificateEmail, getVerificationUrl } from '../services/emailService';
+import { openDirectEmailClient, getVerificationUrl } from '../services/emailService';
 import { EmailPreviewModal } from '../components/EmailPreviewModal';
 import { CertificateTemplate } from '../components/CertificateTemplate';
 
@@ -222,9 +222,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
     setIsIssueCertOpen(true);
   };
 
-  const handleIssueAndSendCertificate = async (e: React.FormEvent) => {
+  const handleIssueAndSendCertificate = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSendingEmail(true);
 
     try {
       // 1. Generate & Issue certificate in registry
@@ -237,31 +236,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
         notes: issueCertForm.notes,
       });
 
-      // 2. Automated dispatch email to the student
-      const sendResult = await sendAutomatedCertificateEmail(newCert, settings);
-
       refreshAllData();
       setIsIssueCertOpen(false);
-      setIsSendingEmail(false);
 
       notifySuccess(
-        `Certificate ${newCert.id} generated! ${sendResult.message}`
+        `Certificate ${newCert.id} generated! Email template ready — click "Open in Gmail" or your mail client to send.`
       );
 
-      // Offer email preview
+      // Immediately launch email modal so admin can 1-click open their email to send
       setEmailPreviewCert(newCert);
     } catch (err: unknown) {
-      setIsSendingEmail(false);
       alert('Error issuing certificate: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
-  const handleSendEmailForExisting = async (cert: Certificate) => {
-    setIsSendingEmail(true);
-    const result = await sendAutomatedCertificateEmail(cert, settings);
-    setIsSendingEmail(false);
-    refreshAllData();
-    notifySuccess(result.message);
+  const handleSendEmailForExisting = (cert: Certificate) => {
+    setEmailPreviewCert(cert);
   };
 
   // --- Handlers: Daily Attendance Posting ---
@@ -1594,7 +1584,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
       )}
 
       {/* ======================================================== */}
-      {/* MODAL: EMAIL TEMPLATE PREVIEW */}
+      {/* MODAL: EMAIL TEMPLATE PREVIEW & 1-CLICK DISPATCH */}
       {/* ======================================================== */}
       {emailPreviewCert && (
         <EmailPreviewModal
@@ -1602,8 +1592,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
           settings={settings}
           isOpen={!!emailPreviewCert}
           onClose={() => setEmailPreviewCert(null)}
-          onSendAutomated={() => handleSendEmailForExisting(emailPreviewCert)}
-          isSending={isSendingEmail}
+          onDispatched={() => {
+            refreshAllData();
+            notifySuccess(`Email client opened for ${emailPreviewCert.studentName}. Send when ready!`);
+          }}
         />
       )}
 
