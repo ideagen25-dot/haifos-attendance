@@ -70,21 +70,21 @@ export function generateCertificateEmailHtml(
   <style>
     body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f5; margin: 0; padding: 20px; color: #1f2937; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; }
-    .header { background: linear-gradient(135deg, #0c603a 0%, #084429 100%); padding: 36px 30px; text-align: center; color: #ffffff; }
+    .header { background: linear-gradient(135deg, #1a5487 0%, #0f2540 100%); padding: 36px 30px; text-align: center; color: #ffffff; }
     .header h1 { margin: 0 0 8px; font-size: 24px; font-weight: 800; letter-spacing: 0.5px; }
     .header p { margin: 0; font-size: 13px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1.5px; }
     .content { padding: 36px 32px; }
     .greeting { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 16px; }
     .lead { font-size: 15px; line-height: 1.6; color: #4b5563; margin-bottom: 24px; }
-    .cert-card { background: #f0f7f2; border: 1.5px dashed #0c603a; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    .cert-card { background: #f0f6fb; border: 1.5px dashed #1a5487; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
     .cert-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
     .cert-row:last-child { margin-bottom: 0; }
     .cert-label { color: #6b7280; font-weight: 500; }
     .cert-value { color: #111827; font-weight: 700; text-align: right; }
     .btn-container { text-align: center; margin: 32px 0; }
-    .btn { display: inline-block; background-color: #0c603a; color: #ffffff !important; padding: 14px 32px; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 50px; }
+    .btn { display: inline-block; background-color: #1a5487; color: #ffffff !important; padding: 14px 32px; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 50px; }
     .footer { background: #f9fafb; padding: 24px 30px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #f3f4f6; }
-    .footer a { color: #0c603a; text-decoration: none; font-weight: 600; }
+    .footer a { color: #1a5487; text-decoration: none; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -106,7 +106,7 @@ export function generateCertificateEmailHtml(
         </div>
         <div class="cert-row">
           <span class="cert-label">Certificate ID:</span>
-          <span class="cert-value" style="color: #0c603a;">${certificate.id}</span>
+          <span class="cert-value" style="color: #1a5487;">${certificate.id}</span>
         </div>
         <div class="cert-row">
           <span class="cert-label">Enrollment ID:</span>

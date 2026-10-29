@@ -30,7 +30,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
       width: 140,
       margin: 1,
       color: {
-        dark: '#0c603a',
+        dark: '#1a5487',
         light: '#ffffff',
       },
     })
@@ -184,7 +184,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
         <div
           id="certificate-to-print"
           ref={certRef}
-          className="relative bg-white text-gray-900 shadow-2xl rounded-sm overflow-hidden border-[12px] border-[#0c603a] print:border-8 print:shadow-none"
+          className="relative bg-white text-gray-900 shadow-2xl rounded-sm overflow-hidden border-[12px] border-[#1a5487] print:border-8 print:shadow-none"
           style={{
             width: '1000px',
             minWidth: '1000px',
@@ -196,20 +196,18 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
           <div className="absolute inset-3 border-2 border-[#D4AF37] pointer-events-none z-10 flex flex-col justify-between p-2">
             {/* Corner flourishes */}
             <div className="flex justify-between w-full">
-              <div className="w-8 h-8 border-t-4 border-l-4 border-[#0c603a]"></div>
-              <div className="w-8 h-8 border-t-4 border-r-4 border-[#0c603a]"></div>
+              <div className="w-8 h-8 border-t-4 border-l-4 border-[#1a5487]"></div>
+              <div className="w-8 h-8 border-t-4 border-r-4 border-[#1a5487]"></div>
             </div>
             <div className="flex justify-between w-full">
-              <div className="w-8 h-8 border-b-4 border-l-4 border-[#0c603a]"></div>
-              <div className="w-8 h-8 border-b-4 border-r-4 border-[#0c603a]"></div>
+              <div className="w-8 h-8 border-b-4 border-l-4 border-[#1a5487]"></div>
+              <div className="w-8 h-8 border-b-4 border-r-4 border-[#1a5487]"></div>
             </div>
           </div>
 
           {/* Watermark in background */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none select-none z-0">
-            <svg viewBox="0 0 24 24" className="w-[500px] h-[500px] text-[#0c603a]" fill="currentColor">
-              <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm0 13.78l-7-3.18v4.94C5 19.34 8.13 21 12 21s7-1.66 7-3.46v-4.94l-7 3.18z"/>
-            </svg>
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none select-none z-0">
+            <img src="/haifos-logo.png" alt="" className="w-[450px] object-contain grayscale" />
           </div>
 
           {/* Certificate Content Container */}
@@ -217,14 +215,15 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
             
             {/* Header: Organization Emblem & Name */}
             <div>
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-full bg-[#0c603a] text-white flex items-center justify-center shadow-md">
-                  <svg viewBox="0 0 24 24" className="w-7 h-7" fill="currentColor">
-                    <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm0 13.78l-7-3.18v4.94C5 19.34 8.13 21 12 21s7-1.66 7-3.46v-4.94l-7 3.18z"/>
-                  </svg>
-                </div>
-                <div className="text-left">
-                  <h2 className="text-xl font-black tracking-widest text-[#0c603a] font-cert-title uppercase leading-tight">
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <img 
+                  src="/haifos-logo.png" 
+                  alt="HAIFOS" 
+                  className="h-16 w-auto object-contain" 
+                  crossOrigin="anonymous" 
+                />
+                <div className="text-left border-l-2 border-gray-200 pl-3">
+                  <h2 className="text-xl font-black tracking-widest text-[#1a5487] font-cert-title uppercase leading-tight">
                     {settings.orgName}
                   </h2>
                   <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500 font-semibold">
@@ -240,7 +239,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
                   </h1>
                   <div className="h-0.5 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent w-full"></div>
                 </div>
-                <p className="text-xs uppercase tracking-[0.3em] text-[#0c603a] font-bold mt-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-[#1a5487] font-bold mt-1">
                   Official Academic Credential
                 </p>
               </div>
@@ -251,14 +250,14 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
               <p className="text-xs uppercase tracking-widest text-gray-500 font-medium mb-1">
                 This credential is proudly presented to
               </p>
-              <h2 className="text-4xl font-bold text-gray-900 font-cert-name tracking-wide border-b border-gray-200 pb-2 max-w-xl mx-auto text-[#084429]">
+              <h2 className="text-4xl font-bold font-cert-name tracking-wide border-b border-gray-200 pb-2 max-w-xl mx-auto text-[#0f2540]">
                 {certificate.studentName}
               </h2>
 
               <div className="flex items-center justify-center gap-6 mt-2 text-xs text-gray-600 font-mono">
                 <span>Enrollment No: <strong>{certificate.enrollmentNumber}</strong></span>
                 <span>&bull;</span>
-                <span>Certificate ID: <strong className="text-[#0c603a]">{certificate.id}</strong></span>
+                <span>Certificate ID: <strong className="text-[#1a5487]">{certificate.id}</strong></span>
               </div>
             </div>
 
@@ -267,7 +266,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
               <p className="text-sm text-gray-700 leading-relaxed">
                 for outstanding dedication and successfully completing all curriculum requirements, workshops, and practical assessments in
               </p>
-              <h3 className="text-xl font-bold text-[#0c603a] my-1 font-serif">
+              <h3 className="text-xl font-bold text-[#1a5487] my-1 font-serif">
                 {certificate.courseName}
               </h3>
               <p className="text-xs text-gray-600 font-medium">
@@ -299,7 +298,7 @@ export const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
               <div className="flex flex-col items-center">
                 <div className="relative flex items-center justify-center w-24 h-24 rounded-full border-4 border-[#D4AF37] bg-gradient-to-br from-[#FEF9E7] to-[#F9E79F] shadow-md p-1">
                   <div className="w-full h-full rounded-full border border-dashed border-[#B8860B] flex flex-col items-center justify-center text-center p-1">
-                    <ShieldCheck className="w-6 h-6 text-[#0c603a] mb-0.5" />
+                    <ShieldCheck className="w-6 h-6 text-[#1a5487] mb-0.5" />
                     <span className="text-[7px] uppercase font-black tracking-tighter text-[#7D6608] leading-tight">
                       HAIFOS VERIFIED
                     </span>

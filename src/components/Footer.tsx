@@ -16,14 +16,12 @@ export const Footer: React.FC<FooterProps> = ({ settings, setActiveTab }) => {
           {/* Col 1: About HAIFOS */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center font-black">
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-                  <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm0 13.78l-7-3.18v4.94C5 19.34 8.13 21 12 21s7-1.66 7-3.46v-4.94l-7 3.18z"/>
-                </svg>
+              <div className="bg-white p-2 rounded-xl shadow-md flex items-center justify-center">
+                <img src="/haifos-logo.png" alt="HAIFOS" className="h-8 w-auto object-contain" />
               </div>
               <div>
                 <h4 className="text-white font-black text-lg tracking-wide">{settings.orgName}</h4>
-                <p className="text-xs text-brand-400 font-semibold uppercase tracking-wider">{settings.orgTagline}</p>
+                <p className="text-xs text-brand-300 font-semibold uppercase tracking-wider">{settings.orgTagline}</p>
               </div>
             </div>
             <p className="text-sm text-slate-400 max-w-lg leading-relaxed">

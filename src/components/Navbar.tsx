@@ -34,13 +34,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setting
             onClick={() => handleNavClick('home')}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-11 h-11 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-600/20 group-hover:scale-105 transition-transform">
-              <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-                <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm0 13.78l-7-3.18v4.94C5 19.34 8.13 21 12 21s7-1.66 7-3.46v-4.94l-7 3.18z"/>
-              </svg>
-            </div>
-            <div>
-              <div className="text-xl font-black text-gray-950 tracking-tight leading-none group-hover:text-brand-600 transition-colors">
+            <img 
+              src="/haifos-logo.png" 
+              alt="HAIFOS" 
+              className="h-12 w-auto object-contain group-hover:scale-105 transition-transform" 
+            />
+            <div className="hidden sm:block border-l border-gray-200 pl-3">
+              <div className="text-base font-black text-[#0f2540] tracking-tight leading-none group-hover:text-brand-600 transition-colors uppercase">
                 HAIFOS
               </div>
               <div className="text-[10px] font-bold text-brand-600 uppercase tracking-widest mt-1">

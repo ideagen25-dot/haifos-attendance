@@ -75,7 +75,7 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
             particleCount: 80,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#0c603a', '#D4AF37', '#16a34a', '#EAF2EA'],
+            colors: ['#1a5487', '#12406a', '#D4AF37', '#eaf2ea', '#f99c00'],
           });
         } catch (e) {
           console.error(e);

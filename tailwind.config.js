@@ -8,27 +8,37 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#F0F7F2',
-          100: '#EAF2EA',
-          200: '#C9E1CC',
-          300: '#94C79B',
-          400: '#5BA866',
-          500: '#16a34a',
-          600: '#0c603a',
-          700: '#094a2d',
-          800: '#073621',
-          900: '#042215',
+          50: '#f0f6fb',
+          100: '#e1eef7',
+          200: '#c5ddf0',
+          300: '#99c3e4',
+          400: '#5597d0',
+          500: '#2574b5',
+          600: '#1a5487', // Official HAIFOS Primary Blue
+          700: '#12406a', // HAIFOS Dark Primary Hover
+          800: '#0f2540', // HAIFOS Deep Navy
+          900: '#0a1a2e',
+          950: '#06101d',
         },
         primary: {
-          DEFAULT: '#0c603a',
-          dark: '#084429',
-          light: '#EAF2EA',
-          emerald: '#16a34a',
+          DEFAULT: '#1a5487',
+          hover: '#12406a',
+          dark: '#0f2540',
+          light: '#eaf2ea',
+          amber: '#f99c00',
+        },
+        haifos: {
+          blue: '#1a5487',
+          dark: '#12406a',
+          navy: '#0f2540',
+          mint: '#eaf2ea',
+          sage: '#bfd8c0',
+          amber: '#f99c00',
         },
         gold: {
-          DEFAULT: '#C5A059',
-          light: '#E6CA85',
-          dark: '#997328',
+          DEFAULT: '#D4AF37',
+          light: '#F9E79F',
+          dark: '#B8860B',
           border: '#D4AF37',
         }
       },
@@ -38,8 +48,8 @@ export default {
         mono: ['Fira Code', 'Courier New', 'monospace'],
       },
       boxShadow: {
-        'premium': '0 20px 40px -15px rgba(12, 96, 58, 0.12)',
-        'cert': '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 25px rgba(212, 175, 55, 0.2)',
+        'premium': '0 20px 40px -15px rgba(26, 84, 135, 0.15)',
+        'cert': '0 25px 50px -12px rgba(15, 37, 64, 0.25), 0 0 25px rgba(212, 175, 55, 0.25)',
       }
     },
   },
