@@ -50,43 +50,54 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setting
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
+          <nav className="hidden md:flex items-center gap-3">
+            <button
+              onClick={() => handleNavClick('home')}
+              className={`px-4 py-2 text-sm font-black transition-colors rounded-full ${
+                activeTab === 'home'
+                  ? 'text-[#1a5487] bg-[#1a5487]/10'
+                  : 'text-gray-700 hover:text-[#1a5487] hover:bg-[#1a5487]/5'
+              }`}
+            >
+              Home
+            </button>
 
-              if (item.id === 'verify') {
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavClick(item.id as any)}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-sm ${
-                      isActive
-                        ? 'bg-brand-600 text-white shadow-brand-600/30'
-                        : 'bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200'
-                    }`}
-                  >
-                    <Award className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              }
+            <button
+              onClick={() => handleNavClick('attendance')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-black transition-colors rounded-full ${
+                activeTab === 'attendance'
+                  ? 'text-[#1a5487] bg-[#1a5487]/10'
+                  : 'text-gray-700 hover:text-[#1a5487] hover:bg-[#1a5487]/5'
+              }`}
+            >
+              <CalendarCheck className="w-4 h-4" />
+              <span>Check Attendance</span>
+            </button>
 
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavClick(item.id as any)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all ${
-                    isActive
-                      ? 'bg-gray-100 text-brand-700 font-extrabold'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  {Icon && <Icon className="w-4 h-4 text-gray-400" />}
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
+            <button
+              onClick={() => handleNavClick('admin')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-black transition-colors rounded-full ${
+                activeTab === 'admin'
+                  ? 'text-[#1a5487] bg-[#1a5487]/10'
+                  : 'text-gray-700 hover:text-[#1a5487] hover:bg-[#1a5487]/5'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              <span>Admin Portal</span>
+            </button>
+
+            {/* Right Action Button styled like 'DONATE NOW' in haifos.org */}
+            <button
+              onClick={() => handleNavClick('verify')}
+              className={`ml-2 px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 ${
+                activeTab === 'verify'
+                  ? 'bg-[#12406a] text-white ring-2 ring-[#1a5487] ring-offset-2'
+                  : 'bg-[#1a5487] hover:bg-[#12406a] text-white'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>Verify Certificate</span>
+            </button>
           </nav>
 
           {/* Mobile menu button */}
