@@ -714,13 +714,23 @@ class StorageService {
     const studentLastName = (cert.lastName || '').trim().toLowerCase();
     const certDob = (cert.dateOfBirth || '').trim().toLowerCase();
 
-    const matchDob = certDob === query || certDob.replace(/-/g, '') === query.replace(/[^0-9]/g, '');
+    // Support both ISO YYYY-MM-DD and DD-MM-YYYY formats:
+    let normalizedQueryDob = query;
+    if (/^\d{2}[-/]\d{2}[-/]\d{4}$/.test(query)) {
+      const [d, m, y] = query.split(/[-/]/);
+      normalizedQueryDob = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+
+    const matchDob =
+      certDob === query ||
+      certDob === normalizedQueryDob ||
+      certDob.replace(/-/g, '') === query.replace(/[^0-9]/g, '');
     const matchLastName = studentLastName === query;
 
     if (!matchDob && !matchLastName) {
       return {
         valid: false,
-        message: `Certificate ID verified, but verification failed for the provided Date of Birth or Last Name. Please verify and re-enter.`,
+        message: `Certificate ID verified, but verification failed for the provided Date of Birth. Please check the date and try again.`,
       };
     }
 

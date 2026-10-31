@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Award, Search, ShieldCheck, AlertCircle, Sparkles, CheckCircle2, RotateCcw, Calendar, User, BookOpen } from 'lucide-react';
+import { Award, Search, ShieldCheck, AlertCircle, CheckCircle2, RotateCcw, Calendar, BookOpen } from 'lucide-react';
 import { Course, Certificate, SystemSettings } from '../types';
 import { storage } from '../services/storage';
 import { CertificateTemplate } from '../components/CertificateTemplate';
@@ -13,12 +13,26 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('all');
   const [certificateId, setCertificateId] = useState<string>('');
-  const [dobOrLastName, setDobOrLastName] = useState<string>('');
+  const [dateOfBirth, setDateOfBirth] = useState<string>('');
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [verifiedCert, setVerifiedCert] = useState<Certificate | null>(null);
   const [relatedCerts, setRelatedCerts] = useState<Certificate[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const today = new Date().toISOString().split('T')[0];
+
+  // Helper to format ISO YYYY-MM-DD into display format DD-MM-YYYY
+  const formatDisplayDob = (isoDate: string): string => {
+    if (!isoDate) return '';
+    const parts = isoDate.split('-');
+    if (parts.length === 3) {
+      const [y, m, d] = parts;
+      return `${d}-${m}-${y}`;
+    }
+    return isoDate;
+  };
 
   useEffect(() => {
     const loadedCourses = storage.getCourses();
@@ -32,17 +46,21 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
         const queryString = hash.slice(queryIdx + 1);
         const params = new URLSearchParams(queryString);
         const urlId = params.get('id');
-        const urlDob = params.get('dob') || params.get('lastName');
+        const urlDob = params.get('dob') || params.get('dateOfBirth') || params.get('lastName');
         const urlCourse = params.get('courseId') || 'all';
 
         if (urlId) {
           setCertificateId(urlId);
-          if (urlDob) setDobOrLastName(urlDob);
           if (urlCourse) setSelectedCourseId(urlCourse);
 
-          // Auto-verify if credentials are in the URL
           if (urlDob) {
-            executeVerification(urlCourse, urlId, urlDob);
+            let parsedDob = urlDob;
+            if (/^\d{2}[-/]\d{2}[-/]\d{4}$/.test(urlDob)) {
+              const [d, m, y] = urlDob.split(/[-/]/);
+              parsedDob = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+            }
+            setDateOfBirth(parsedDob);
+            executeVerification(urlCourse, urlId, parsedDob);
           }
         }
       }
@@ -53,14 +71,14 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
     return () => window.removeEventListener('hashchange', handleUrlParams);
   }, []);
 
-  const executeVerification = (courseId: string, certId: string, queryDobOrLastName: string) => {
+  const executeVerification = (courseId: string, certId: string, queryDob: string) => {
     setIsLoading(true);
     setErrorMessage('');
     setVerifiedCert(null);
     setRelatedCerts([]);
 
     setTimeout(() => {
-      const result = storage.verifyCertificate(courseId, certId, queryDobOrLastName);
+      const result = storage.verifyCertificate(courseId, certId, queryDob);
 
       if (result.valid && result.certificate) {
         setVerifiedCert(result.certificate);
@@ -93,31 +111,20 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
       setErrorMessage('Please enter a Certificate ID.');
       return;
     }
-    if (!dobOrLastName.trim()) {
-      setErrorMessage('Please enter the Student Date of Birth (YYYY-MM-DD) or Last Name.');
+    if (!dateOfBirth) {
+      setErrorMessage('Please select the Student Date of Birth.');
       return;
     }
-    executeVerification(selectedCourseId, certificateId, dobOrLastName);
-  };
-
-  // Demo auto-fill helper for quick review/testing
-  const handleLoadSample = (sampleType: 'rahul' | 'priya') => {
-    if (sampleType === 'rahul') {
-      setSelectedCourseId('course-2');
-      setCertificateId('HF-2026-WEB-8192');
-      setDobOrLastName('Sharma');
-      executeVerification('course-2', 'HF-2026-WEB-8192', 'Sharma');
-    } else {
-      setSelectedCourseId('course-1');
-      setCertificateId('HF-2026-DL-4731');
-      setDobOrLastName('2003-08-22');
-      executeVerification('course-1', 'HF-2026-DL-4731', '2003-08-22');
+    if (dateOfBirth > today) {
+      setErrorMessage('Date of Birth cannot be in the future.');
+      return;
     }
+    executeVerification(selectedCourseId, certificateId, dateOfBirth);
   };
 
   const handleReset = () => {
     setCertificateId('');
-    setDobOrLastName('');
+    setDateOfBirth('');
     setSelectedCourseId('all');
     setVerifiedCert(null);
     setRelatedCerts([]);
@@ -170,7 +177,7 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
             </div>
           </div>
 
-          {/* Row 2: Certificate ID & DOB / Last Name */}
+          {/* Row 2: Certificate ID & Date of Birth Calendar Picker */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Certificate ID */}
@@ -193,78 +200,101 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
               </div>
             </div>
 
-            {/* DOB or Last Name */}
+            {/* Date of Birth with Calendar Picker */}
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                3. Date of Birth OR Last Name <span className="text-red-500">*</span>
+                3. Date of Birth <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
+              <div 
+                onClick={() => {
+                  if (dateInputRef.current) {
+                    try {
+                      dateInputRef.current.showPicker();
+                    } catch {
+                      dateInputRef.current.focus();
+                    }
+                  }
+                }}
+                className="relative cursor-pointer group"
+              >
+                {/* Formatted visible text field displaying DD-MM-YYYY */}
                 <input
                   type="text"
-                  placeholder="e.g. 2002-04-15 or Sharma"
-                  value={dobOrLastName}
-                  onChange={(e) => setDobOrLastName(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                  readOnly
+                  placeholder="DD-MM-YYYY"
+                  value={formatDisplayDob(dateOfBirth)}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 group-hover:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all cursor-pointer font-mono"
                   required
                 />
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                  <User className="w-4 h-4" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-600">
+                  <Calendar className="w-4 h-4" />
                 </div>
+
+                {/* Actual HTML date input with calendar picker & max=today */}
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  max={today}
+                  value={dateOfBirth}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val && val > today) {
+                      setErrorMessage('Date of Birth cannot be in the future.');
+                      return;
+                    }
+                    setDateOfBirth(val);
+                    if (errorMessage) setErrorMessage('');
+                  }}
+                  onClick={(e) => {
+                    try {
+                      (e.currentTarget as HTMLInputElement).showPicker();
+                    } catch {
+                      // fallback
+                    }
+                  }}
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                  tabIndex={-1}
+                  aria-label="Select Date of Birth"
+                />
               </div>
+              <p className="text-[11px] text-gray-500 mt-1">
+                Format: DD-MM-YYYY &bull; Click to open calendar
+              </p>
             </div>
 
           </div>
 
           {/* Submit & Reset Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span className="font-semibold text-gray-600">Quick Test:</span>
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+            {verifiedCert && (
               <button
                 type="button"
-                onClick={() => handleLoadSample('rahul')}
-                className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors"
+                onClick={handleReset}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors"
+                title="Clear results"
               >
-                Sample 1 (Rahul)
+                <RotateCcw className="w-4 h-4" />
+                <span>Reset Form</span>
               </button>
-              <button
-                type="button"
-                onClick={() => handleLoadSample('priya')}
-                className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors"
-              >
-                Sample 2 (Priya)
-              </button>
-            </div>
+            )}
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              {verifiedCert && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="p-3 text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                  title="Clear results"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-brand-600/20 transition-all disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Verifying...</span>
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4" />
+                  <span>Verify Credential</span>
+                </>
               )}
-              
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-brand-600/20 transition-all disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Verifying...</span>
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    <span>Verify Credential</span>
-                  </>
-                )}
-              </button>
-            </div>
+            </button>
           </div>
 
         </form>
