@@ -71,14 +71,14 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
     return () => window.removeEventListener('hashchange', handleUrlParams);
   }, []);
 
-  const executeVerification = (courseId: string, certId: string, queryDob: string) => {
+  const executeVerification = async (courseId: string, certId: string, queryDob: string) => {
     setIsLoading(true);
     setErrorMessage('');
     setVerifiedCert(null);
     setRelatedCerts([]);
 
-    setTimeout(() => {
-      const result = storage.verifyCertificate(courseId, certId, queryDob);
+    try {
+      const result = await storage.verifyCertificate(courseId, certId, queryDob);
 
       if (result.valid && result.certificate) {
         setVerifiedCert(result.certificate);
@@ -101,8 +101,11 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
       } else {
         setErrorMessage(result.message);
       }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Verification error occurred.');
+    } finally {
       setIsLoading(false);
-    }, 400);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -180,15 +183,15 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
           {/* Row 2: Certificate ID & Date of Birth Calendar Picker */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            {/* Certificate ID */}
+            {/* Certificate ID or Enrollment Number */}
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                2. Certificate ID <span className="text-red-500">*</span>
+                2. Certificate ID or Enrollment Number <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="e.g. HF-2026-WEB-8192"
+                  placeholder="e.g. HF-2026-WEB-8192 or 12345"
                   value={certificateId}
                   onChange={(e) => setCertificateId(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono uppercase text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"

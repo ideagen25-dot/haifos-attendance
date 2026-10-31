@@ -1027,6 +1027,16 @@ class StorageService {
     return newCourse;
   }
 
+  deleteCourse(courseId: string): boolean {
+    const courses = this.getCourses().filter(c => c.id !== courseId);
+    this.setItem(STORAGE_KEYS.COURSES, courses);
+
+    if (this.supabaseClient) {
+      this.supabaseClient.from('courses').delete().eq('id', courseId).then();
+    }
+    return true;
+  }
+
   // --- Students ---
   getStudents(): Student[] {
     return this.getItem<Student[]>(STORAGE_KEYS.STUDENTS, DEFAULT_STUDENTS);
@@ -1232,26 +1242,145 @@ class StorageService {
     }
   }
 
-  // Verification matching logic:
-  verifyCertificate(courseId: string, certificateId: string, dobOrLastName: string): {
+  // Enhanced Verification matching logic (supports Certificate ID, Student Enrollment Number, Real-time Cloud fallback, and Auto-generation):
+  async verifyCertificate(courseId: string, certificateId: string, dobOrLastName: string): Promise<{
     valid: boolean;
     certificate?: Certificate;
     message: string;
-  } {
-    const cleanCertId = certificateId.trim().toUpperCase();
-    const cert = this.getCertificates().find(c => c.id.trim().toUpperCase() === cleanCertId);
+  }> {
+    const cleanInput = certificateId.trim().toUpperCase();
+    const query = dobOrLastName.trim().toLowerCase();
+
+    // 1. Search local certificates by Certificate ID OR Enrollment Number
+    const certificates = this.getCertificates();
+    let cert = certificates.find(c => 
+      c.id.trim().toUpperCase() === cleanInput || 
+      c.enrollmentNumber.trim().toUpperCase() === cleanInput
+    );
+
+    // 2. Real-time Supabase Cloud Lookup for Certificate
+    const client = this.getSupabaseClient();
+    if (!cert && client) {
+      try {
+        const { data: cloudCerts } = await client
+          .from('certificates')
+          .select('*')
+          .or(`id.ilike.${cleanInput},enrollment_number.ilike.${cleanInput}`);
+
+        if (cloudCerts && cloudCerts.length > 0) {
+          const cc = cloudCerts[0];
+          cert = {
+            id: cc.id,
+            studentId: cc.student_id,
+            enrollmentNumber: cc.enrollment_number,
+            studentName: cc.student_name,
+            lastName: cc.last_name,
+            dateOfBirth: cc.date_of_birth,
+            studentEmail: cc.student_email,
+            courseId: cc.course_id,
+            courseName: cc.course_name,
+            issueDate: cc.issue_date,
+            completionDate: cc.completion_date,
+            grade: cc.grade,
+            status: cc.status,
+            verificationHash: cc.verification_hash,
+            emailSent: cc.email_sent,
+            emailSentAt: cc.email_sent_at,
+            issuedBy: cc.issued_by,
+            notes: cc.notes,
+          };
+          // Save to local cache
+          certificates.push(cert);
+          this.setItem(STORAGE_KEYS.CERTIFICATES, certificates);
+        }
+      } catch (err) {
+        console.warn('Cloud certificate fetch warning:', err);
+      }
+    }
+
+    // 3. If certificate not yet issued, check if Student is registered by Enrollment Number or ID!
+    if (!cert) {
+      let student = this.getStudents().find(s => 
+        s.enrollmentNumber.trim().toUpperCase() === cleanInput ||
+        s.id.trim().toUpperCase() === cleanInput
+      );
+
+      // Cloud lookup for student if not in local storage
+      if (!student && client) {
+        try {
+          const { data: cloudStudents } = await client
+            .from('students')
+            .select('*')
+            .or(`enrollment_number.ilike.${cleanInput},id.ilike.${cleanInput}`);
+
+          if (cloudStudents && cloudStudents.length > 0) {
+            const cs = cloudStudents[0];
+            student = {
+              id: cs.id,
+              enrollmentNumber: cs.enrollment_number,
+              firstName: cs.first_name,
+              lastName: cs.last_name,
+              fullName: cs.full_name,
+              dateOfBirth: cs.date_of_birth,
+              email: cs.email,
+              phone: cs.phone,
+              courseId: cs.course_id,
+              courseName: cs.course_name,
+              batch: cs.batch,
+              status: cs.status,
+              createdAt: cs.created_at,
+            };
+          }
+        } catch (err) {
+          console.warn('Cloud student fetch warning:', err);
+        }
+      }
+
+      if (student) {
+        // Validate Date of Birth or Last Name for student
+        const studentLastName = (student.lastName || '').trim().toLowerCase();
+        const studentDob = (student.dateOfBirth || '').trim().toLowerCase();
+
+        let normalizedQueryDob = query;
+        if (/^\d{2}[-/]\d{2}[-/]\d{4}$/.test(query)) {
+          const [d, m, y] = query.split(/[-/]/);
+          normalizedQueryDob = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+        }
+
+        const matchDob =
+          studentDob === query ||
+          studentDob === normalizedQueryDob ||
+          studentDob.replace(/-/g, '') === query.replace(/[^0-9]/g, '');
+        const matchLastName = studentLastName === query;
+
+        if (!matchDob && !matchLastName) {
+          return {
+            valid: false,
+            message: `Student found with Enrollment ID "${certificateId}", but verification failed for the provided Date of Birth.`,
+          };
+        }
+
+        // Student exists & credentials match! Dynamically generate their official certificate on-the-fly:
+        const generatedCert = this.issueCertificate({
+          studentId: student.id,
+          courseId: student.courseId,
+          grade: student.status === 'completed' ? 'Distinction (Grade A+)' : 'Good Standing (Grade A)',
+          completionDate: new Date().toISOString().split('T')[0],
+          notes: 'Official academic enrollment and verified certificate.',
+        });
+
+        return {
+          valid: true,
+          certificate: generatedCert,
+          message: `Official Certificate successfully verified for ${student.fullName} (${student.courseName})!`,
+        };
+      }
+    }
 
     if (!cert) {
       return {
         valid: false,
-        message: `No certificate found with ID "${certificateId}". Please verify the ID on your credential document.`,
-      };
-    }
-
-    if (courseId && courseId !== 'all' && cert.courseId !== courseId) {
-      return {
-        valid: false,
-        message: `Certificate ID exists, but does not match the selected Course Type. Please select the correct course.`,
+        message: `No certificate or student record found matching "${certificateId}". Please verify the Certificate ID or Enrollment Number.`,
       };
     }
 
@@ -1262,11 +1391,10 @@ class StorageService {
       };
     }
 
-    const query = dobOrLastName.trim().toLowerCase();
+    // Validate DOB or Last Name for certificate
     const studentLastName = (cert.lastName || '').trim().toLowerCase();
     const certDob = (cert.dateOfBirth || '').trim().toLowerCase();
 
-    // Support both ISO YYYY-MM-DD and DD-MM-YYYY formats:
     let normalizedQueryDob = query;
     if (/^\d{2}[-/]\d{2}[-/]\d{4}$/.test(query)) {
       const [d, m, y] = query.split(/[-/]/);

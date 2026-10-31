@@ -32,6 +32,8 @@ import {
   Sparkles,
   Lock,
   Unlock,
+  BookOpen,
+  GraduationCap,
   X
 } from 'lucide-react';
 import { Student, Course, Certificate, AttendanceRecord, SystemSettings, AdminProfile, AdminRole, AdminSession } from '../types';
@@ -113,8 +115,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
   });
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
 
-  // Active Admin Sub-tab ('students' | 'certificates' | 'attendance' | 'admins' | 'settings')
-  const [adminTab, setAdminTab] = useState<'students' | 'certificates' | 'attendance' | 'admins' | 'settings'>('students');
+  // Active Admin Sub-tab ('students' | 'courses' | 'certificates' | 'attendance' | 'admins' | 'settings')
+  const [adminTab, setAdminTab] = useState<'students' | 'courses' | 'certificates' | 'attendance' | 'admins' | 'settings'>('students');
 
   // Core Data States
   const [students, setStudents] = useState<Student[]>([]);
@@ -125,6 +127,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
   // Search & Filter
   const [searchStudentText, setSearchStudentText] = useState<string>('');
   const [filterCourse, setFilterCourse] = useState<string>('all');
+
+  // Course Management State
+  const [isAddCourseOpen, setIsAddCourseOpen] = useState<boolean>(false);
+  const [newCourseForm, setNewCourseForm] = useState({
+    title: '',
+    code: '',
+    duration: '8 Weeks (60 Hours)',
+    description: '',
+    instructor: 'HAIFOS Academic Mentors',
+    totalSessions: 24,
+  });
 
   // Modal States
   const [isAddStudentOpen, setIsAddStudentOpen] = useState<boolean>(false);
@@ -533,9 +546,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
       status: newStudentForm.status,
     });
 
+    // Automatically issue the student's authentic certificate record so it can be verified immediately
+    try {
+      storage.issueCertificate({
+        studentId: created.id,
+        courseId: created.courseId,
+        grade: 'Distinction (Grade A+)',
+        completionDate: new Date().toISOString().split('T')[0],
+        notes: 'Successfully registered and verified in academic program.',
+      });
+    } catch (err) {
+      console.warn('Auto-certificate creation error:', err);
+    }
+
     refreshAllData();
     setIsAddStudentOpen(false);
-    notifySuccess(`Student ${created.fullName} (${created.enrollmentNumber}) successfully registered!`);
+    notifySuccess(`Student ${created.fullName} (${created.enrollmentNumber}) successfully registered and certificate generated!`);
 
     // Reset form
     setNewStudentForm({
@@ -556,6 +582,44 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
       storage.deleteStudent(id);
       refreshAllData();
       notifySuccess(`Student record removed.`);
+    }
+  };
+
+  // --- Handlers: Courses ---
+  const handleCreateCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCourseForm.title.trim() || !newCourseForm.code.trim()) {
+      alert('Course Title and Code are required.');
+      return;
+    }
+
+    const created = storage.addCourse({
+      title: newCourseForm.title.trim(),
+      code: newCourseForm.code.trim().toUpperCase(),
+      duration: newCourseForm.duration.trim(),
+      description: newCourseForm.description.trim(),
+      instructor: newCourseForm.instructor.trim(),
+      totalSessions: Number(newCourseForm.totalSessions) || 20,
+    });
+
+    refreshAllData();
+    setIsAddCourseOpen(false);
+    notifySuccess(`Course "${created.title}" (${created.code}) successfully created!`);
+    setNewCourseForm({
+      title: '',
+      code: '',
+      duration: '8 Weeks (60 Hours)',
+      description: '',
+      instructor: 'HAIFOS Academic Mentors',
+      totalSessions: 24,
+    });
+  };
+
+  const handleDeleteCourse = (courseId: string, courseTitle: string) => {
+    if (window.confirm(`Are you sure you want to remove course "${courseTitle}"?`)) {
+      storage.deleteCourse(courseId);
+      refreshAllData();
+      notifySuccess(`Course "${courseTitle}" removed.`);
     }
   };
 
@@ -1302,6 +1366,18 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
         </button>
 
         <button
+          onClick={() => setAdminTab('courses')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            adminTab === 'courses'
+              ? 'bg-brand-600 text-white shadow-sm'
+              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>2. Courses ({courses.length})</span>
+        </button>
+
+        <button
           onClick={() => setAdminTab('certificates')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
             adminTab === 'certificates'
@@ -1310,7 +1386,7 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
           }`}
         >
           <Award className="w-4 h-4" />
-          <span>2. Certificate Issuance &amp; Email ({certificates.length})</span>
+          <span>3. Certificates &amp; Email ({certificates.length})</span>
         </button>
 
         <button
@@ -1322,7 +1398,7 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
           }`}
         >
           <CalendarCheck className="w-4 h-4" />
-          <span>3. Post Daily Attendance</span>
+          <span>4. Post Daily Attendance</span>
         </button>
 
         {currentAdmin?.role === 'SUPER_ADMIN' && (
@@ -1335,7 +1411,7 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
             }`}
           >
             <Shield className="w-4 h-4" />
-            <span>4. Administrators ({adminProfiles.length})</span>
+            <span>5. Administrators ({adminProfiles.length})</span>
           </button>
         )}
 
@@ -1349,7 +1425,7 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
             }`}
           >
             <Settings className="w-4 h-4" />
-            <span>5. System Settings</span>
+            <span>6. System Settings</span>
           </button>
         )}
       </div>
@@ -1481,7 +1557,70 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
       )}
 
       {/* ======================================================== */}
-      {/* SUB-TAB 2: CERTIFICATES ISSUANCE & AUTOMATED EMAIL */}
+      {/* SUB-TAB: COURSE MANAGEMENT */}
+      {/* ======================================================== */}
+      {adminTab === 'courses' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-black text-gray-900">Academic Programs &amp; Courses</h3>
+              <p className="text-xs text-gray-500">
+                Create and manage academic course offerings, durations, and instructors.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsAddCourseOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add New Course</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {courses.map((course) => (
+              <div
+                key={course.id}
+                className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-brand-300 transition-all space-y-4"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 bg-brand-50 text-brand-700 font-mono text-xs font-black rounded-lg border border-brand-200 uppercase tracking-wider">
+                      {course.code}
+                    </span>
+                    <span className="text-xs font-semibold text-gray-400">
+                      {course.duration || 'Flexible'}
+                    </span>
+                  </div>
+
+                  <h4 className="text-base font-bold text-gray-900">{course.title}</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed">{course.description}</p>
+
+                  <div className="text-xs text-gray-500 pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <span><strong>Instructor:</strong> {course.instructor || 'HAIFOS Faculty'}</span>
+                    <span><strong>Total Sessions:</strong> {course.totalSessions || 20}</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-end border-t border-gray-100">
+                  <button
+                    onClick={() => handleDeleteCourse(course.id, course.title)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs font-semibold flex items-center gap-1"
+                    title="Delete Course"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Course</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* SUB-TAB 3: CERTIFICATES ISSUANCE & AUTOMATED EMAIL */}
       {/* ======================================================== */}
       {adminTab === 'certificates' && (
         <div className="space-y-6">
@@ -2300,6 +2439,135 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: ADD NEW COURSE */}
+      {/* ======================================================== */}
+      {isAddCourseOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 border border-gray-100 space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center font-bold">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900">Add New Academic Course</h3>
+                  <p className="text-xs text-gray-500">Create a program track and curriculum offering</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddCourseOpen(false)}
+                className="text-gray-400 hover:text-gray-700 p-1 rounded-lg text-lg font-bold"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCourse} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                  Course Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Artificial Intelligence & Robotics"
+                  value={newCourseForm.title}
+                  onChange={(e) => setNewCourseForm({ ...newCourseForm, title: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Course Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. AI-ROBOT"
+                    value={newCourseForm.code}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, code: e.target.value.toUpperCase().replace(/\s+/g, '-') })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-xs font-mono uppercase text-gray-900 focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Duration
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 10 Weeks (80 Hours)"
+                    value={newCourseForm.duration}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, duration: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Instructor / Mentors
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dr. Srinivas & IIT Mentors"
+                    value={newCourseForm.instructor}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, instructor: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Total Sessions
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newCourseForm.totalSessions}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, totalSessions: parseInt(e.target.value) || 20 })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Summary of course curriculum and learning objectives..."
+                  value={newCourseForm.description}
+                  onChange={(e) => setNewCourseForm({ ...newCourseForm, description: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddCourseOpen(false)}
+                  className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all"
+                >
+                  Create Academic Course
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
