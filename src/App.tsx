@@ -13,14 +13,17 @@ export function App() {
   const [settings, setSettings] = useState<SystemSettings>(() => storage.getSettings());
 
   useEffect(() => {
-    // Sync active tab with URL Hash (e.g. #verify, #attendance, #admin)
+    // Sync active tab with URL Hash or Path (e.g. #verify, #attendance, #admin, /admin)
     const handleHashChange = () => {
-      const hash = window.location.hash.toLowerCase();
-      if (hash.startsWith('#verify')) {
+      const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+      const path = window.location.pathname.toLowerCase().replace(/^\//, '');
+      const target = hash || path;
+
+      if (target.startsWith('verify')) {
         setActiveTab('verify');
-      } else if (hash.startsWith('#attendance')) {
+      } else if (target.startsWith('attendance')) {
         setActiveTab('attendance');
-      } else if (hash.startsWith('#admin')) {
+      } else if (target.startsWith('admin')) {
         setActiveTab('admin');
       } else {
         setActiveTab('home');

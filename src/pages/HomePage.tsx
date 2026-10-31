@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, CalendarCheck, ShieldCheck, CheckCircle2, ArrowRight, Sparkles, BookOpen, Users, FileCheck } from 'lucide-react';
+import { Award, CalendarCheck, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 import { SystemSettings } from '../types';
 
 interface HomePageProps {
@@ -31,7 +31,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
               </h1>
 
               <p className="text-base sm:text-lg text-gray-600 max-w-xl leading-relaxed font-normal">
-                Building a digital verification ecosystem by empowering rural youth with authentic tamper-proof certificates, transparent daily attendance tracking, and 100% zero-storage architecture.
+                HAIFOS empowers educational institutions with smart digital solutions<br className="hidden sm:inline" /> for student management and academic operations.
               </p>
 
               {/* Action Buttons styled after haifos.org */}
@@ -214,7 +214,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
               <ul className="space-y-2.5 text-xs text-gray-600 mb-8">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-brand-600 flex-shrink-0" />
-                  <span>Admin daily attendance posting with 1-click batch toggles</span>
+                  <span>Real-time daily attendance updates and session history</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-brand-600 flex-shrink-0" />
@@ -236,34 +236,6 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
             </button>
           </div>
 
-        </div>
-      </section>
-
-      {/* Admin Feature Highlight Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-brand-900 to-brand-800 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 rounded-l-full pointer-events-none"></div>
-
-          <div className="relative z-10 max-w-2xl space-y-4">
-            <span className="px-3.5 py-1 bg-white/10 text-sky-200 text-xs font-bold rounded-full uppercase tracking-wider">
-              Admin &amp; Faculty Command Center
-            </span>
-            <h3 className="text-3xl font-black tracking-tight text-white">
-              Automated Student Onboarding, Approvals &amp; Email Dispatch
-            </h3>
-            <p className="text-sm text-sky-100 leading-relaxed">
-              Add student profiles, approve certificates with a single click, and automatically email them the official certificate notification and direct verification link.
-            </p>
-            <div className="pt-2">
-              <button
-                onClick={() => setActiveTab('admin')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-900 hover:bg-brand-50 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg"
-              >
-                <ShieldCheck className="w-4 h-4 text-brand-600" />
-                <span>Open Admin Portal (Default PIN: admin)</span>
-              </button>
-            </div>
-          </div>
         </div>
       </section>
     </div>

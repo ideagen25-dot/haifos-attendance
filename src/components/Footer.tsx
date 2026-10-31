@@ -54,14 +54,6 @@ export const Footer: React.FC<FooterProps> = ({ settings, setActiveTab }) => {
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => { setActiveTab('admin'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  className="hover:text-brand-400 transition-colors"
-                >
-                  Admin Portal &amp; Issuance
-                </button>
-              </li>
-              <li>
                 <a
                   href={settings.orgWebsite}
                   target="_blank"

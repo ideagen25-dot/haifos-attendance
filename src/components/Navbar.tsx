@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, CalendarCheck, Shield, Menu, X, CheckCircle, Sparkles } from 'lucide-react';
+import { Award, CalendarCheck, Menu, X } from 'lucide-react';
 import { SystemSettings } from '../types';
 
 interface NavbarProps {
@@ -13,9 +13,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setting
 
   const navItems = [
     { id: 'home', label: 'Home', icon: null },
-    { id: 'verify', label: 'Verify Certificate', icon: Award, highlight: true },
     { id: 'attendance', label: 'Check Attendance', icon: CalendarCheck },
-    { id: 'admin', label: 'Admin Portal', icon: Shield },
+    { id: 'verify', label: 'Verify Certificate', icon: Award, highlight: true },
   ];
 
   const handleNavClick = (tabId: 'home' | 'verify' | 'attendance' | 'admin') => {
@@ -39,11 +38,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setting
               alt="HAIFOS" 
               className="h-12 w-auto object-contain group-hover:scale-105 transition-transform" 
             />
-            <div className="hidden sm:block border-l border-gray-200 pl-3">
-              <div className="text-base font-black text-[#0f2540] tracking-tight leading-none group-hover:text-brand-600 transition-colors uppercase">
+            <div className="flex flex-col border-l border-gray-200 pl-3">
+              <div className="text-base sm:text-lg font-black text-[#0f2540] tracking-tight leading-none group-hover:text-brand-600 transition-colors uppercase">
                 HAIFOS
               </div>
-              <div className="text-[10px] font-bold text-brand-600 uppercase tracking-widest mt-1">
+              <div className="text-[9px] sm:text-[10px] font-bold text-brand-600 uppercase tracking-widest mt-1">
                 Academic &amp; Attendance Portal
               </div>
             </div>
@@ -72,18 +71,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setting
             >
               <CalendarCheck className="w-4 h-4" />
               <span>Check Attendance</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('admin')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-black transition-colors rounded-full ${
-                activeTab === 'admin'
-                  ? 'text-[#1a5487] bg-[#1a5487]/10'
-                  : 'text-gray-700 hover:text-[#1a5487] hover:bg-[#1a5487]/5'
-              }`}
-            >
-              <Shield className="w-4 h-4" />
-              <span>Admin Portal</span>
             </button>
 
             {/* Right Action Button styled like 'DONATE NOW' in haifos.org */}
