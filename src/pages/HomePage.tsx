@@ -71,74 +71,14 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
               </div>
             </div>
 
-            {/* Right Card / Visual with Floating Badges styled like haifos.org */}
-            <div className="lg:col-span-5">
-              <div className="relative">
-                {/* Floating Regional Pill 1: TELANGANA */}
-                <div className="absolute -top-3 left-8 bg-white border border-gray-100 shadow-md px-4 py-1.5 rounded-full text-[11px] font-black tracking-widest text-[#101828] uppercase z-30 pointer-events-none">
-                  TELANGANA
-                </div>
-
-                {/* Floating Regional Pill 2: BIHAR */}
-                <div className="absolute top-1/2 -right-3 -translate-y-1/2 bg-white border border-gray-100 shadow-md px-4 py-1.5 rounded-full text-[11px] font-black tracking-widest text-[#101828] uppercase z-30 pointer-events-none">
-                  BIHAR
-                </div>
-
-                {/* Floating Bottom Pill: Join the Movement */}
-                <div className="absolute -bottom-4 left-8 bg-white border border-gray-100 shadow-lg px-5 py-2 rounded-full text-xs font-black tracking-wider text-[#1a5487] flex items-center gap-2 z-30">
-                  <div className="w-4 h-4 rounded-full bg-[#1a5487] text-white flex items-center justify-center text-[10px] font-black">+</div>
-                  <span>Join the MOVEMENT</span>
-                </div>
-
-                {/* Floating Certificate Preview Snippet */}
-                <div className="bg-white rounded-[32px] p-7 shadow-2xl border border-gray-100 relative z-20">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#edf1f5] text-[#1a5487] flex items-center justify-center font-bold">
-                        <Award className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-black text-[#101828] uppercase">Standard Dynamic Credential</div>
-                        <div className="text-[11px] text-[#1a5487] font-semibold">Live On-the-Fly Generation</div>
-                      </div>
-                    </div>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-brand-50 text-brand-700 text-[10px] font-bold rounded-full border border-brand-200">
-                      <CheckCircle2 className="w-3 h-3" /> VERIFIED
-                    </span>
-                  </div>
-
-                  <div className="bg-[#f0f6fb]/70 rounded-2xl p-4 border border-[#c5ddf0]/60 mb-5 space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Student:</span>
-                      <span className="font-bold text-[#101828]">Rahul Sharma</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Certificate ID:</span>
-                      <span className="font-mono font-bold text-[#1a5487]">HF-2026-WEB-8192</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Course:</span>
-                      <span className="font-medium text-gray-800">Full Stack Web Development</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Attendance:</span>
-                      <span className="font-bold text-brand-700">92% (Eligible)</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setActiveTab('verify')}
-                      className="w-full py-3 bg-[#1a5487] hover:bg-[#12406a] text-white rounded-xl text-xs font-bold transition-colors text-center shadow-md shadow-[#1a5487]/20"
-                    >
-                      Try Live Verification &rarr;
-                    </button>
-                  </div>
-                </div>
-
-                {/* Decorative Background Glows */}
-                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[#bfd8c0]/40 rounded-full blur-2xl -z-10"></div>
-                <div className="absolute -top-6 -right-6 w-32 h-32 bg-[#c5ddf0]/50 rounded-full blur-2xl -z-10"></div>
+            {/* Right Column: Official HAIFOS Company Logo */}
+            <div className="lg:col-span-5 flex items-center justify-center py-4 lg:py-0">
+              <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg flex items-center justify-center p-4 sm:p-8">
+                <img
+                  src="/haifos-logo.png"
+                  alt="HAIFOS - Academic & Attendance Portal"
+                  className="w-full max-h-72 sm:max-h-80 lg:max-h-96 object-contain drop-shadow-sm transition-transform duration-300 hover:scale-[1.02]"
+                />
               </div>
             </div>
 
