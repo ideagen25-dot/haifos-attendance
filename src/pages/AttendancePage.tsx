@@ -52,11 +52,6 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ settings, setAct
     executeSearch(searchQuery);
   };
 
-  const handleSample = (sampleNum: 'HF-2026-001' | 'HF-2026-002' | 'HF-2026-004') => {
-    setSearchQuery(sampleNum);
-    executeSearch(sampleNum);
-  };
-
   const handleReset = () => {
     setSearchQuery('');
     setStudent(null);
@@ -101,10 +96,6 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ settings, setAct
       
       {/* Title */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full border border-brand-200">
-          <CalendarCheck className="w-3.5 h-3.5 text-brand-600" />
-          Transparent Student Attendance Registry
-        </div>
         <h1 className="text-3xl sm:text-4xl font-black text-gray-950 tracking-tight">
           Check Daily Attendance
         </h1>
@@ -135,52 +126,26 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ settings, setAct
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span className="font-semibold text-gray-600">Quick Test:</span>
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-1">
+            {searched && (
               <button
                 type="button"
-                onClick={() => handleSample('HF-2026-001')}
-                className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors"
+                onClick={handleReset}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors"
+                title="Clear search"
               >
-                Rahul (92%)
+                <RotateCcw className="w-4 h-4" />
+                <span>Reset</span>
               </button>
-              <button
-                type="button"
-                onClick={() => handleSample('HF-2026-002')}
-                className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors"
-              >
-                Priya (100%)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSample('HF-2026-004')}
-                className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors"
-              >
-                Sneha (96%)
-              </button>
-            </div>
+            )}
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              {searched && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="p-3 text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                  title="Clear search"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-              )}
-              
-              <button
-                type="submit"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-brand-600/20 transition-all"
-              >
-                <Search className="w-4 h-4" />
-                <span>Search Attendance</span>
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-brand-600/20 transition-all"
+            >
+              <Search className="w-4 h-4" />
+              <span>Search Attendance</span>
+            </button>
           </div>
         </form>
 
