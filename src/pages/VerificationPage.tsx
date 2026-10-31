@@ -224,7 +224,6 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
                   placeholder="DD-MM-YYYY"
                   value={formatDisplayDob(dateOfBirth)}
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 group-hover:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all cursor-pointer font-mono"
-                  required
                 />
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-600">
                   <Calendar className="w-4 h-4" />
@@ -257,9 +256,6 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
                   aria-label="Select Date of Birth"
                 />
               </div>
-              <p className="text-[11px] text-gray-500 mt-1">
-                Format: DD-MM-YYYY &bull; Click to open calendar
-              </p>
             </div>
 
           </div>
