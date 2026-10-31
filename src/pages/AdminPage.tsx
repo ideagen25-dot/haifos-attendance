@@ -1485,6 +1485,7 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                     <th className="px-6 py-4">Enrollment ID</th>
                     <th className="px-6 py-4">Student Name</th>
                     <th className="px-6 py-4">Course Program</th>
+                    <th className="px-6 py-4">Certificate ID</th>
                     <th className="px-6 py-4">Date of Birth</th>
                     <th className="px-6 py-4">Contact Email</th>
                     <th className="px-6 py-4">Status</th>
@@ -1494,13 +1495,13 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                 <tbody className="divide-y divide-gray-100">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
+                      <td colSpan={8} className="px-6 py-8 text-center text-gray-400">
                         No students match your query. Click "Add Student Profile" to register a new student.
                       </td>
                     </tr>
                   ) : (
                     filteredStudents.map((s) => {
-                      const hasCert = certificates.some(c => c.studentId === s.id || c.enrollmentNumber === s.enrollmentNumber);
+                      const studentCert = certificates.find(c => c.studentId === s.id || c.enrollmentNumber === s.enrollmentNumber);
                       return (
                         <tr key={s.id} className="hover:bg-gray-50/70 transition-colors">
                           <td className="px-6 py-4 font-mono font-bold text-gray-900 whitespace-nowrap">
@@ -1512,6 +1513,27 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                           <td className="px-6 py-4 text-gray-700 font-medium">
                             <span className="block">{s.courseName}</span>
                             <span className="text-[10px] text-gray-400">{s.batch}</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {studentCert ? (
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg font-mono font-bold text-xs">
+                                <Award className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                                <span>{studentCert.id}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(studentCert.id);
+                                    notifySuccess(`Copied Certificate ID: ${studentCert.id}`);
+                                  }}
+                                  className="text-amber-700 hover:text-amber-950 p-0.5 hover:bg-amber-100 rounded transition-colors"
+                                  title="Copy Certificate ID"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-gray-400 italic">Not Issued</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 font-mono text-gray-600 whitespace-nowrap">
                             {s.dateOfBirth}
@@ -1535,7 +1557,7 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                               title="Generate Certificate & Send Email"
                             >
                               <Award className="w-3.5 h-3.5" />
-                              <span>{hasCert ? 'Re-Issue / Send' : 'Generate Cert'}</span>
+                              <span>{studentCert ? 'Re-Issue / Send' : 'Generate Cert'}</span>
                             </button>
                             <button
                               onClick={() => handleDeleteStudent(s.id, s.fullName)}
@@ -1666,8 +1688,22 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                   ) : (
                     certificates.map((cert) => (
                       <tr key={cert.id} className="hover:bg-gray-50/70 transition-colors">
-                        <td className="px-6 py-4 font-mono font-bold text-brand-700 whitespace-nowrap">
-                          {cert.id}
+                        <td className="px-6 py-4 font-mono font-bold whitespace-nowrap">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs">
+                            <Award className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                            <span>{cert.id}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(cert.id);
+                                notifySuccess(`Copied Certificate ID: ${cert.id}`);
+                              }}
+                              className="text-amber-700 hover:text-amber-950 p-0.5 hover:bg-amber-100 rounded transition-colors"
+                              title="Copy Certificate ID"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="font-bold text-gray-900">{cert.studentName}</div>

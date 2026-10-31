@@ -1242,16 +1242,21 @@ class StorageService {
     }
   }
 
-  // Enhanced Verification matching logic (supports Certificate ID, Student Enrollment Number, Real-time Cloud fallback, and Auto-generation):
-  async verifyCertificate(courseId: string, certificateId: string, dobOrLastName: string): Promise<{
+  // Pure Transparent Verification by Certificate ID (with Enrollment Number fallback):
+  async verifyCertificate(certificateId: string): Promise<{
     valid: boolean;
     certificate?: Certificate;
     message: string;
   }> {
     const cleanInput = certificateId.trim().toUpperCase();
-    const query = dobOrLastName.trim().toLowerCase();
+    if (!cleanInput) {
+      return {
+        valid: false,
+        message: 'Please enter an official Certificate ID.',
+      };
+    }
 
-    // 1. Search local certificates by Certificate ID OR Enrollment Number
+    // 1. Search local certificates by Certificate ID or Enrollment Number
     const certificates = this.getCertificates();
     let cert = certificates.find(c => 
       c.id.trim().toUpperCase() === cleanInput || 
@@ -1298,7 +1303,7 @@ class StorageService {
       }
     }
 
-    // 3. If certificate not yet issued, check if Student is registered by Enrollment Number or ID!
+    // 3. Fallback: if student exists by Enrollment Number, auto-generate dynamic certificate
     if (!cert) {
       let student = this.getStudents().find(s => 
         s.enrollmentNumber.trim().toUpperCase() === cleanInput ||
@@ -1337,30 +1342,7 @@ class StorageService {
       }
 
       if (student) {
-        // Validate Date of Birth or Last Name for student
-        const studentLastName = (student.lastName || '').trim().toLowerCase();
-        const studentDob = (student.dateOfBirth || '').trim().toLowerCase();
-
-        let normalizedQueryDob = query;
-        if (/^\d{2}[-/]\d{2}[-/]\d{4}$/.test(query)) {
-          const [d, m, y] = query.split(/[-/]/);
-          normalizedQueryDob = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-        }
-
-        const matchDob =
-          studentDob === query ||
-          studentDob === normalizedQueryDob ||
-          studentDob.replace(/-/g, '') === query.replace(/[^0-9]/g, '');
-        const matchLastName = studentLastName === query;
-
-        if (!matchDob && !matchLastName) {
-          return {
-            valid: false,
-            message: `Student found with Enrollment ID "${certificateId}", but verification failed for the provided Date of Birth.`,
-          };
-        }
-
-        // Student exists & credentials match! Dynamically generate their official certificate on-the-fly:
+        // Dynamically generate official certificate on-the-fly:
         const generatedCert = this.issueCertificate({
           studentId: student.id,
           courseId: student.courseId,
@@ -1380,7 +1362,7 @@ class StorageService {
     if (!cert) {
       return {
         valid: false,
-        message: `No certificate or student record found matching "${certificateId}". Please verify the Certificate ID or Enrollment Number.`,
+        message: `No certificate found with ID "${certificateId}". Please verify the Certificate ID printed on your document.`,
       };
     }
 
@@ -1388,29 +1370,6 @@ class StorageService {
       return {
         valid: false,
         message: `This certificate has been marked as ${cert.status.toUpperCase()} by the institution.`,
-      };
-    }
-
-    // Validate DOB or Last Name for certificate
-    const studentLastName = (cert.lastName || '').trim().toLowerCase();
-    const certDob = (cert.dateOfBirth || '').trim().toLowerCase();
-
-    let normalizedQueryDob = query;
-    if (/^\d{2}[-/]\d{2}[-/]\d{4}$/.test(query)) {
-      const [d, m, y] = query.split(/[-/]/);
-      normalizedQueryDob = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-    }
-
-    const matchDob =
-      certDob === query ||
-      certDob === normalizedQueryDob ||
-      certDob.replace(/-/g, '') === query.replace(/[^0-9]/g, '');
-    const matchLastName = studentLastName === query;
-
-    if (!matchDob && !matchLastName) {
-      return {
-        valid: false,
-        message: `Certificate ID verified, but verification failed for the provided Date of Birth. Please check the date and try again.`,
       };
     }
 
