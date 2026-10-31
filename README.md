@@ -30,7 +30,7 @@ Designed specifically for **100% zero-cost hosting** on **Netlify + GitHub** wit
 ---
 
 ### 2. 🛡️ Admin Portal & Completely Automated Emailing
-- **Admin Password / PIN Protection:** (Default password: `admin`)
+- **Admin Security & Role Management:** Protected by Supabase Auth with bcrypt password hashing and Role-Based Access Control (Super Admin & Admin).
 - **Add Student User Profile:**
   - First Name, Last Name, Date of Birth, Email, Phone, Course, Batch, and Enrollment Number.
 - **Generate & Approve Certificate:**
@@ -108,8 +108,8 @@ git push -u origin main
 | **Priya Patel** | `HF-2026-002` | `2003-08-22` | Digital Literacy & AI | `HF-2026-DL-4731` |
 | **Sneha Reddy** | `HF-2026-004` | `2004-01-30` | Digital Literacy & AI | Active Student (96% Attendance) |
 
-### Admin Login:
-- **Default PIN / Password:** `admin`
+### Admin Access:
+- **Authentication:** Admin accounts are managed securely via Supabase Authentication. Default administrative credentials should be set up via environment variables or initial onboarding and never committed into version control.
 
 ---
 

@@ -34,13 +34,50 @@ export const handler = async (event: any) => {
     };
   }
 
+  // Security Verification: Require valid Bearer token from an active SUPER_ADMIN
+  const authHeader = event.headers.authorization || event.headers.Authorization || '';
+  if (!authHeader.startsWith('Bearer ')) {
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ error: 'Unauthorized: Missing or invalid Bearer authorization token.' }),
+    };
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+
   const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
   try {
+    // Validate the caller's JWT token
+    const { data: { user: callerUser }, error: tokenErr } = await supabaseAdmin.auth.getUser(token);
+    if (tokenErr || !callerUser) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Unauthorized: Invalid or expired administrator session.' }),
+      };
+    }
+
+    // Verify caller role is SUPER_ADMIN and active
+    const { data: callerProfile, error: callerProfileErr } = await supabaseAdmin
+      .from('admin_profiles')
+      .select('role, is_active')
+      .eq('id', callerUser.id)
+      .maybeSingle();
+
+    if (callerProfileErr || !callerProfile || !callerProfile.is_active || callerProfile.role !== 'SUPER_ADMIN') {
+      return {
+        statusCode: 403,
+        headers,
+        body: JSON.stringify({ error: 'Forbidden: Only active Super Administrators can perform administrative user provisioning.' }),
+      };
+    }
+
     const body = JSON.parse(event.body || '{}');
-    const { action, fullName, username, email, password, role, createdBy } = body;
+    const { action, fullName, username, email, password, role } = body;
 
     if (action === 'create-user') {
       if (!email || !password || !username || !fullName) {
@@ -48,6 +85,14 @@ export const handler = async (event: any) => {
           statusCode: 400,
           headers,
           body: JSON.stringify({ error: 'Missing required administrator user fields.' }),
+        };
+      }
+
+      if (password.length < 8) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Password must be at least 8 characters long.' }),
         };
       }
 
@@ -78,7 +123,7 @@ export const handler = async (event: any) => {
         full_name: fullName.trim(),
         role: role || 'ADMIN',
         is_active: true,
-        created_by: createdBy || null,
+        created_by: callerUser.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

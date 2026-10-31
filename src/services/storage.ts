@@ -308,6 +308,17 @@ class StorageService {
     const cleanFullName = params.fullName.trim();
 
     try {
+      // Security verification: If a Super Admin already exists, block initialization
+      const { data: existingAdmins } = await client
+        .from('admin_profiles')
+        .select('id, role');
+
+      if (existingAdmins && existingAdmins.some((a: any) => a.role === 'SUPER_ADMIN')) {
+        return {
+          success: false,
+          message: 'Security Alert: A Primary Super Admin has already been registered. Initial setup is permanently locked.',
+        };
+      }
       // Passwords managed exclusively by Supabase Auth (bcrypt hashed)
       const { data: authData, error: authError } = await client.auth.signUp({
         email: cleanEmail,
@@ -590,9 +601,13 @@ class StorageService {
     try {
       // 1. Attempt secure Netlify Function endpoint if available
       try {
+        const session = await this.getCurrentAdminSession();
         const response = await fetch('/api/admin-users', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+          },
           body: JSON.stringify({
             action: 'create-user',
             fullName: cleanFullName,
