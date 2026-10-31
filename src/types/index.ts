@@ -57,6 +57,29 @@ export interface AttendanceRecord {
   createdAt: string;
 }
 
+export type AdminRole = 'SUPER_ADMIN' | 'ADMIN';
+
+export interface AdminProfile {
+  id: string; // references auth.users UUID
+  username: string;
+  email: string;
+  fullName: string;
+  role: AdminRole;
+  isActive: boolean;
+  createdBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminSession {
+  user: {
+    id: string;
+    email: string;
+  };
+  profile: AdminProfile;
+  token?: string;
+}
+
 export interface SystemSettings {
   orgName: string;
   orgTagline: string;
@@ -68,12 +91,11 @@ export interface SystemSettings {
   directorTitle: string;
   coordinatorName: string;
   coordinatorTitle: string;
-  adminPassword: string;
   // Free EmailJS credentials
   emailJsServiceId?: string;
   emailJsTemplateId?: string;
   emailJsPublicKey?: string;
-  // Optional Supabase credentials
+  // Supabase credentials for cloud database & auth
   supabaseUrl?: string;
   supabaseAnonKey?: string;
 }

@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Student, Course, Certificate, AttendanceRecord, SystemSettings } from '../types';
+import { Student, Course, Certificate, AttendanceRecord, SystemSettings, AdminProfile, AdminRole, AdminSession } from '../types';
 
 const STORAGE_KEYS = {
   STUDENTS: 'haifos_students',
@@ -59,7 +59,6 @@ const DEFAULT_SETTINGS: SystemSettings = {
   directorTitle: 'Executive Director & Co-Founder',
   coordinatorName: 'Vivek Kumar',
   coordinatorTitle: 'Academic Director & IIT-H Alumnus',
-  adminPassword: 'admin',
   emailJsServiceId: '',
   emailJsTemplateId: '',
   emailJsPublicKey: '',
@@ -239,6 +238,539 @@ class StorageService {
     }
     this.supabaseClient = null;
     return null;
+  }
+
+  public getSupabaseClient(): SupabaseClient | null {
+    if (!this.supabaseClient) {
+      return this.initSupabase();
+    }
+    return this.supabaseClient;
+  }
+
+  // --- Admin Authentication & User Management (Supabase Driven) ---
+  public async checkAdminSetupStatus(): Promise<{
+    isConfigured: boolean;
+    tableExists: boolean;
+    hasSuperAdmin: boolean;
+    adminCount: number;
+    error?: string;
+  }> {
+    const client = this.getSupabaseClient();
+    if (!client) {
+      return { isConfigured: false, tableExists: false, hasSuperAdmin: false, adminCount: 0 };
+    }
+
+    try {
+      const { data, count, error } = await client
+        .from('admin_profiles')
+        .select('id, role', { count: 'exact', head: false });
+
+      if (error) {
+        if (error.code === '42P01' || error.message.includes('relation') || error.message.includes('not exist')) {
+          return {
+            isConfigured: true,
+            tableExists: false,
+            hasSuperAdmin: false,
+            adminCount: 0,
+            error: 'Table "admin_profiles" not found. Please run the SQL schema migration in your Supabase SQL editor.',
+          };
+        }
+        return { isConfigured: true, tableExists: false, hasSuperAdmin: false, adminCount: 0, error: error.message };
+      }
+
+      const totalCount = count ?? (data?.length || 0);
+      const hasSuper = (data || []).some((p: any) => p.role === 'SUPER_ADMIN');
+
+      return {
+        isConfigured: true,
+        tableExists: true,
+        hasSuperAdmin: hasSuper,
+        adminCount: totalCount,
+      };
+    } catch (e: any) {
+      return { isConfigured: true, tableExists: false, hasSuperAdmin: false, adminCount: 0, error: e.message };
+    }
+  }
+
+  public async initializeSuperAdmin(params: {
+    fullName: string;
+    username: string;
+    email: string;
+    password: string;
+  }): Promise<{ success: boolean; session?: AdminSession; message: string }> {
+    const client = this.getSupabaseClient();
+    if (!client) {
+      return { success: false, message: 'Supabase client is not configured.' };
+    }
+
+    const cleanUsername = params.username.trim().toLowerCase();
+    const cleanEmail = params.email.trim().toLowerCase();
+    const cleanFullName = params.fullName.trim();
+
+    try {
+      // Passwords managed exclusively by Supabase Auth (bcrypt hashed)
+      const { data: authData, error: authError } = await client.auth.signUp({
+        email: cleanEmail,
+        password: params.password,
+        options: {
+          data: {
+            full_name: cleanFullName,
+            username: cleanUsername,
+            role: 'SUPER_ADMIN',
+          },
+        },
+      });
+
+      if (authError) {
+        return { success: false, message: `Supabase Auth error: ${authError.message}` };
+      }
+
+      const userId = authData.user?.id;
+      if (!userId) {
+        return { success: false, message: 'Failed to create Supabase Auth user identity.' };
+      }
+
+      const profile: AdminProfile = {
+        id: userId,
+        username: cleanUsername,
+        email: cleanEmail,
+        fullName: cleanFullName,
+        role: 'SUPER_ADMIN',
+        isActive: true,
+        createdBy: userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const { error: profileError } = await client.from('admin_profiles').upsert({
+        id: profile.id,
+        username: profile.username,
+        email: profile.email,
+        full_name: profile.fullName,
+        role: profile.role,
+        is_active: profile.isActive,
+        created_by: profile.createdBy,
+        created_at: profile.createdAt,
+        updated_at: profile.updatedAt,
+      });
+
+      if (profileError) {
+        return { success: false, message: `Error creating admin profile: ${profileError.message}` };
+      }
+
+      const session: AdminSession = {
+        user: { id: userId, email: cleanEmail },
+        profile,
+        token: authData.session?.access_token,
+      };
+
+      sessionStorage.setItem('haifos_admin_session', JSON.stringify(session));
+      return { success: true, session, message: 'Primary Super Admin account successfully initialized!' };
+    } catch (e: any) {
+      return { success: false, message: `Initialization failed: ${e.message}` };
+    }
+  }
+
+  public async loginAdmin(
+    identifier: string,
+    password: string
+  ): Promise<{ success: boolean; session?: AdminSession; message: string }> {
+    const client = this.getSupabaseClient();
+    if (!client) {
+      return { success: false, message: 'Supabase is not configured. Please enter your project credentials.' };
+    }
+
+    const cleanInput = identifier.trim().toLowerCase();
+
+    try {
+      let emailToAuth = cleanInput;
+
+      // If user entered username instead of email, resolve email from admin_profiles
+      if (!cleanInput.includes('@')) {
+        const { data: userProfile, error: lookupErr } = await client
+          .from('admin_profiles')
+          .select('email, is_active')
+          .ilike('username', cleanInput)
+          .maybeSingle();
+
+        if (lookupErr || !userProfile) {
+          return { success: false, message: 'Invalid credentials. Please verify your username or password.' };
+        }
+
+        if (!userProfile.is_active) {
+          return { success: false, message: 'Your administrator account has been deactivated. Please contact a Super Admin.' };
+        }
+
+        emailToAuth = userProfile.email;
+      }
+
+      const { data: authData, error: authError } = await client.auth.signInWithPassword({
+        email: emailToAuth,
+        password,
+      });
+
+      if (authError || !authData.user) {
+        return { success: false, message: 'Invalid credentials. Please verify your email/username and password.' };
+      }
+
+      const { data: profileRow, error: profileErr } = await client
+        .from('admin_profiles')
+        .select('*')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+
+      if (profileErr || !profileRow) {
+        await client.auth.signOut();
+        return {
+          success: false,
+          message: 'Authenticated, but no matching administrator profile was found. Access is restricted to authorized admins.',
+        };
+      }
+
+      if (!profileRow.is_active) {
+        await client.auth.signOut();
+        return {
+          success: false,
+          message: 'Your administrator account has been deactivated. Please contact a Super Admin.',
+        };
+      }
+
+      const profile: AdminProfile = {
+        id: profileRow.id,
+        username: profileRow.username,
+        email: profileRow.email,
+        fullName: profileRow.full_name,
+        role: profileRow.role as AdminRole,
+        isActive: profileRow.is_active,
+        createdBy: profileRow.created_by,
+        createdAt: profileRow.created_at,
+        updatedAt: profileRow.updated_at,
+      };
+
+      const session: AdminSession = {
+        user: { id: authData.user.id, email: authData.user.email || profile.email },
+        profile,
+        token: authData.session?.access_token,
+      };
+
+      sessionStorage.setItem('haifos_admin_session', JSON.stringify(session));
+      return { success: true, session, message: 'Logged in successfully.' };
+    } catch (e: any) {
+      return { success: false, message: `Login failed: ${e.message}` };
+    }
+  }
+
+  public async logoutAdmin(): Promise<void> {
+    const client = this.getSupabaseClient();
+    sessionStorage.removeItem('haifos_admin_session');
+    if (client) {
+      try {
+        await client.auth.signOut();
+      } catch (err) {
+        console.warn('Supabase signOut warning:', err);
+      }
+    }
+  }
+
+  public async getCurrentAdminSession(): Promise<AdminSession | null> {
+    const cached = sessionStorage.getItem('haifos_admin_session');
+    let sessionObj: AdminSession | null = null;
+    if (cached) {
+      try {
+        sessionObj = JSON.parse(cached);
+      } catch {
+        sessionObj = null;
+      }
+    }
+
+    const client = this.getSupabaseClient();
+    if (!client) {
+      return sessionObj;
+    }
+
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      if (!session?.user) {
+        sessionStorage.removeItem('haifos_admin_session');
+        return null;
+      }
+
+      const { data: profileRow } = await client
+        .from('admin_profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (!profileRow || !profileRow.is_active) {
+        await client.auth.signOut();
+        sessionStorage.removeItem('haifos_admin_session');
+        return null;
+      }
+
+      const profile: AdminProfile = {
+        id: profileRow.id,
+        username: profileRow.username,
+        email: profileRow.email,
+        fullName: profileRow.full_name,
+        role: profileRow.role as AdminRole,
+        isActive: profileRow.is_active,
+        createdBy: profileRow.created_by,
+        createdAt: profileRow.created_at,
+        updatedAt: profileRow.updated_at,
+      };
+
+      const updatedSession: AdminSession = {
+        user: { id: session.user.id, email: session.user.email || profile.email },
+        profile,
+        token: session.access_token,
+      };
+
+      sessionStorage.setItem('haifos_admin_session', JSON.stringify(updatedSession));
+      return updatedSession;
+    } catch {
+      return sessionObj;
+    }
+  }
+
+  public async getAdminProfiles(): Promise<AdminProfile[]> {
+    const client = this.getSupabaseClient();
+    if (!client) return [];
+
+    try {
+      const { data, error } = await client
+        .from('admin_profiles')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error || !data) return [];
+
+      return data.map((row: any) => ({
+        id: row.id,
+        username: row.username,
+        email: row.email,
+        fullName: row.full_name,
+        role: row.role as AdminRole,
+        isActive: row.is_active,
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    } catch (e) {
+      console.error('Failed to fetch admin profiles:', e);
+      return [];
+    }
+  }
+
+  public async createAdminUser(
+    params: {
+      fullName: string;
+      username: string;
+      email: string;
+      password: string;
+      role: AdminRole;
+    },
+    currentAdmin: AdminProfile
+  ): Promise<{ success: boolean; message: string; profile?: AdminProfile }> {
+    if (currentAdmin.role !== 'SUPER_ADMIN') {
+      return { success: false, message: 'Permission denied: Only Super Admins can create administrator accounts.' };
+    }
+
+    const settings = this.getSettings();
+    const url = settings.supabaseUrl || (import.meta as any).env?.VITE_SUPABASE_URL || '';
+    const anonKey = settings.supabaseAnonKey || (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+
+    if (!url || !anonKey) {
+      return { success: false, message: 'Supabase credentials are not configured.' };
+    }
+
+    const cleanUsername = params.username.trim().toLowerCase();
+    const cleanEmail = params.email.trim().toLowerCase();
+    const cleanFullName = params.fullName.trim();
+
+    try {
+      // 1. Attempt secure Netlify Function endpoint if available
+      try {
+        const response = await fetch('/api/admin-users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create-user',
+            fullName: cleanFullName,
+            username: cleanUsername,
+            email: cleanEmail,
+            password: params.password,
+            role: params.role,
+            createdBy: currentAdmin.id,
+          }),
+        });
+
+        if (response.ok) {
+          const resData = await response.json();
+          if (resData.success) {
+            return {
+              success: true,
+              message: `Administrator "${cleanFullName}" (${params.role}) successfully created!`,
+              profile: resData.profile,
+            };
+          }
+        }
+      } catch {
+        // Fall back to direct isolated client registration
+      }
+
+      // 2. Direct isolated client creation (avoids overwriting current admin session)
+      const isolatedClient = createClient(url, anonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      });
+
+      const { data: authData, error: authError } = await isolatedClient.auth.signUp({
+        email: cleanEmail,
+        password: params.password,
+        options: {
+          data: {
+            full_name: cleanFullName,
+            username: cleanUsername,
+            role: params.role,
+          },
+        },
+      });
+
+      if (authError || !authData.user) {
+        return { success: false, message: `Failed to create auth identity: ${authError?.message || 'Unknown error'}` };
+      }
+
+      const client = this.getSupabaseClient();
+      if (!client) {
+        return { success: false, message: 'Database client unavailable.' };
+      }
+
+      const newProfile: AdminProfile = {
+        id: authData.user.id,
+        username: cleanUsername,
+        email: cleanEmail,
+        fullName: cleanFullName,
+        role: params.role,
+        isActive: true,
+        createdBy: currentAdmin.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const { error: insertErr } = await client.from('admin_profiles').insert({
+        id: newProfile.id,
+        username: newProfile.username,
+        email: newProfile.email,
+        full_name: newProfile.fullName,
+        role: newProfile.role,
+        is_active: newProfile.isActive,
+        created_by: newProfile.createdBy,
+        created_at: newProfile.createdAt,
+        updated_at: newProfile.updatedAt,
+      });
+
+      if (insertErr) {
+        return { success: false, message: `User registered in Auth, but profile insert failed: ${insertErr.message}` };
+      }
+
+      return {
+        success: true,
+        message: `Administrator "${cleanFullName}" (${params.role}) successfully created!`,
+        profile: newProfile,
+      };
+    } catch (e: any) {
+      return { success: false, message: `Error creating administrator: ${e.message}` };
+    }
+  }
+
+  public async updateAdminProfile(
+    targetAdminId: string,
+    updates: Partial<{ fullName: string; role: AdminRole; isActive: boolean }>,
+    currentAdmin: AdminProfile
+  ): Promise<{ success: boolean; message: string }> {
+    if (currentAdmin.role !== 'SUPER_ADMIN') {
+      return { success: false, message: 'Permission denied: Only Super Admins can modify administrator profiles.' };
+    }
+
+    if (targetAdminId === currentAdmin.id && updates.isActive === false) {
+      return { success: false, message: 'Security restriction: You cannot deactivate your own account.' };
+    }
+
+    const client = this.getSupabaseClient();
+    if (!client) return { success: false, message: 'Supabase client not initialized.' };
+
+    try {
+      const payload: any = { updated_at: new Date().toISOString() };
+      if (updates.fullName !== undefined) payload.full_name = updates.fullName.trim();
+      if (updates.role !== undefined) payload.role = updates.role;
+      if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+
+      const { error } = await client
+        .from('admin_profiles')
+        .update(payload)
+        .eq('id', targetAdminId);
+
+      if (error) {
+        return { success: false, message: `Update failed: ${error.message}` };
+      }
+
+      return { success: true, message: 'Administrator profile updated successfully.' };
+    } catch (e: any) {
+      return { success: false, message: `Update failed: ${e.message}` };
+    }
+  }
+
+  public async resetAdminPassword(email: string): Promise<{ success: boolean; message: string }> {
+    const client = this.getSupabaseClient();
+    if (!client) return { success: false, message: 'Supabase client not initialized.' };
+
+    try {
+      const { error } = await client.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: window.location.origin + '/#admin',
+      });
+
+      if (error) {
+        return { success: false, message: error.message };
+      }
+
+      return { success: true, message: `Password reset instructions sent to ${email}.` };
+    } catch (e: any) {
+      return { success: false, message: `Password reset failed: ${e.message}` };
+    }
+  }
+
+  public async deleteAdminProfile(
+    targetAdminId: string,
+    currentAdmin: AdminProfile
+  ): Promise<{ success: boolean; message: string }> {
+    if (currentAdmin.role !== 'SUPER_ADMIN') {
+      return { success: false, message: 'Permission denied: Only Super Admins can delete administrator accounts.' };
+    }
+
+    if (targetAdminId === currentAdmin.id) {
+      return { success: false, message: 'Security restriction: You cannot delete your own account.' };
+    }
+
+    const client = this.getSupabaseClient();
+    if (!client) return { success: false, message: 'Supabase client not initialized.' };
+
+    try {
+      const { error } = await client
+        .from('admin_profiles')
+        .delete()
+        .eq('id', targetAdminId);
+
+      if (error) {
+        return { success: false, message: `Failed to delete administrator: ${error.message}` };
+      }
+
+      return { success: true, message: 'Administrator account deleted successfully.' };
+    } catch (e: any) {
+      return { success: false, message: `Failed to delete administrator: ${e.message}` };
+    }
   }
 
   public isCloudConnected(): boolean {
@@ -435,7 +967,12 @@ class StorageService {
 
   // --- Settings ---
   getSettings(): SystemSettings {
-    return this.getItem<SystemSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+    const settings = this.getItem<SystemSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+    if ((settings as any).adminPassword) {
+      delete (settings as any).adminPassword;
+      this.setItem(STORAGE_KEYS.SETTINGS, settings);
+    }
+    return settings;
   }
 
   saveSettings(settings: Partial<SystemSettings>): SystemSettings {

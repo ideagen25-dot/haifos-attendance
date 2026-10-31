@@ -53,22 +53,6 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
                   <span>Check Attendance</span>
                 </button>
               </div>
-
-              {/* Trust Badges */}
-              <div className="pt-6 grid grid-cols-3 gap-4 border-t border-gray-100 max-w-lg">
-                <div>
-                  <div className="text-2xl font-black text-[#101828]">100%</div>
-                  <div className="text-xs text-gray-500 font-medium mt-0.5">Automated Issuance</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-[#1a5487]">0 MB</div>
-                  <div className="text-xs text-gray-500 font-medium mt-0.5">Server Storage ($0 Cost)</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-[#101828]">Free</div>
-                  <div className="text-xs text-gray-500 font-medium mt-0.5">Netlify &amp; GitHub Ready</div>
-                </div>
-              </div>
             </div>
 
             {/* Right Column: Official HAIFOS Company Logo */}
@@ -109,7 +93,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab, settings }) =>
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed mb-6">
                 Students, recruiters, and academic institutions can verify certificates issued by HAIFOS.
-                Simply select the Course Type, input the Certificate ID, and verify with Date of Birth or Last Name.
+                Simply select the Course Type, input the Certificate ID, and verify with Date of Birth.
               </p>
               
               <ul className="space-y-2.5 text-xs text-gray-600 mb-8">
