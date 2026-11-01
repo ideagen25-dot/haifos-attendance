@@ -153,6 +153,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
   const [newStudentForm, setNewStudentForm] = useState({
     firstName: '',
     lastName: '',
+    collegeName: '',
+    role: 'Web Development Intern',
+    startDate: '',
+    endDate: '',
     dateOfBirth: '',
     email: '',
     phone: '',
@@ -166,6 +170,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
   const [issueCertForm, setIssueCertForm] = useState({
     studentId: '',
     courseId: '',
+    collegeName: '',
+    role: '',
+    startDate: '',
+    endDate: '',
     grade: 'Distinction (Grade A+)',
     completionDate: new Date().toISOString().split('T')[0],
     issueDate: new Date().toISOString().split('T')[0],
@@ -536,6 +544,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
     const created = storage.addStudent({
       firstName: newStudentForm.firstName,
       lastName: newStudentForm.lastName,
+      collegeName: newStudentForm.collegeName.trim() || undefined,
+      role: newStudentForm.role.trim() || undefined,
+      startDate: newStudentForm.startDate || undefined,
+      endDate: newStudentForm.endDate || undefined,
       dateOfBirth: newStudentForm.dateOfBirth,
       email: newStudentForm.email,
       phone: newStudentForm.phone || '+91 0000000000',
@@ -551,8 +563,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
       storage.issueCertificate({
         studentId: created.id,
         courseId: created.courseId,
+        collegeName: created.collegeName,
+        role: created.role,
+        startDate: created.startDate,
+        endDate: created.endDate,
         grade: 'Distinction (Grade A+)',
-        completionDate: new Date().toISOString().split('T')[0],
+        completionDate: created.endDate || new Date().toISOString().split('T')[0],
         notes: 'Successfully registered and verified in academic program.',
       });
     } catch (err) {
@@ -567,6 +583,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
     setNewStudentForm({
       firstName: '',
       lastName: '',
+      collegeName: '',
+      role: 'Web Development Intern',
+      startDate: '',
+      endDate: '',
       dateOfBirth: '',
       email: '',
       phone: '',
@@ -625,21 +645,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
 
   // --- Handlers: Certificate Issuance & Automated Email ---
   const handleOpenIssueModal = (student?: Student) => {
-    if (student) {
+    const s = student || students[0];
+    if (s) {
       setIssueCertForm({
-        studentId: student.id,
-        courseId: student.courseId,
+        studentId: s.id,
+        courseId: s.courseId,
+        collegeName: s.collegeName || '',
+        role: s.role || (s.courseName.toLowerCase().includes('intern') ? s.courseName : `${s.courseName} Intern`),
+        startDate: s.startDate || '',
+        endDate: s.endDate || s.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
         grade: 'Distinction (Grade A+)',
-        completionDate: new Date().toISOString().split('T')[0],
-        issueDate: new Date().toISOString().split('T')[0],
-        notes: 'Successfully fulfilled all academic and practical training milestones.',
-      });
-    } else if (students.length > 0) {
-      setIssueCertForm({
-        studentId: students[0].id,
-        courseId: students[0].courseId,
-        grade: 'Distinction (Grade A+)',
-        completionDate: new Date().toISOString().split('T')[0],
+        completionDate: s.endDate || new Date().toISOString().split('T')[0],
         issueDate: new Date().toISOString().split('T')[0],
         notes: 'Successfully fulfilled all academic and practical training milestones.',
       });
@@ -655,6 +671,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ settings, onUpdateSettings
       const newCert = storage.issueCertificate({
         studentId: issueCertForm.studentId,
         courseId: issueCertForm.courseId,
+        collegeName: issueCertForm.collegeName.trim() || undefined,
+        role: issueCertForm.role.trim() || undefined,
+        startDate: issueCertForm.startDate || undefined,
+        endDate: issueCertForm.endDate || undefined,
         grade: issueCertForm.grade,
         completionDate: issueCertForm.completionDate,
         issueDate: issueCertForm.issueDate,
@@ -1512,7 +1532,10 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                           </td>
                           <td className="px-6 py-4 text-gray-700 font-medium">
                             <span className="block">{s.courseName}</span>
-                            <span className="text-[10px] text-gray-400">{s.batch}</span>
+                            <span className="text-[10px] text-gray-400">
+                              {s.collegeName ? `${s.collegeName} • ` : ''}{s.batch}
+                            </span>
+                            {s.role && <span className="block text-[10px] text-brand-700 font-semibold">{s.role}</span>}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {studentCert ? (
@@ -1707,10 +1730,18 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="font-bold text-gray-900">{cert.studentName}</div>
-                          <div className="text-[10px] text-gray-400 font-mono">No: {cert.enrollmentNumber} &bull; {cert.studentEmail}</div>
+                          <div className="text-[10px] text-gray-400 font-mono">
+                            {cert.collegeName ? `${cert.collegeName} • ` : ''}No: {cert.enrollmentNumber} &bull; {cert.studentEmail}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-gray-800 font-medium">
-                          {cert.courseName}
+                          <div>{cert.courseName}</div>
+                          {cert.role && <div className="text-[11px] text-brand-700 font-semibold">{cert.role}</div>}
+                          {(cert.startDate || cert.endDate) && (
+                            <div className="text-[10px] text-gray-400 font-mono">
+                              {cert.startDate || '—'} to {cert.endDate || cert.completionDate}
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 font-mono text-gray-600 whitespace-nowrap">
                           {cert.issueDate}
@@ -2723,6 +2754,60 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    College / University Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. National Institute of Technology, Patna"
+                    value={newStudentForm.collegeName}
+                    onChange={(e) => setNewStudentForm({ ...newStudentForm, collegeName: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Internship Role
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Web Development Intern"
+                    value={newStudentForm.role}
+                    onChange={(e) => setNewStudentForm({ ...newStudentForm, role: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Internship Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newStudentForm.startDate}
+                    onChange={(e) => setNewStudentForm({ ...newStudentForm, startDate: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Internship End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newStudentForm.endDate}
+                    onChange={(e) => setNewStudentForm({ ...newStudentForm, endDate: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-900 focus:ring-2 focus:ring-brand-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
                     Batch
                   </label>
                   <input
@@ -2805,6 +2890,10 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                       ...prev,
                       studentId: e.target.value,
                       courseId: st ? st.courseId : prev.courseId,
+                      collegeName: st?.collegeName || prev.collegeName,
+                      role: st?.role || (st ? (st.courseName.toLowerCase().includes('intern') ? st.courseName : `${st.courseName} Intern`) : prev.role),
+                      startDate: st?.startDate || prev.startDate,
+                      endDate: st?.endDate || prev.endDate,
                     }));
                   }}
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-900 font-semibold"
@@ -2831,6 +2920,62 @@ CREATE POLICY "Allow delete on admin_profiles" ON public.admin_profiles FOR DELE
                     <option key={c.id} value={c.id}>{c.title} ({c.code})</option>
                   ))}
                 </select>
+              </div>
+
+              {/* College & Role */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    College / University
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. National Institute of Technology, Patna"
+                    value={issueCertForm.collegeName}
+                    onChange={(e) => setIssueCertForm({ ...issueCertForm, collegeName: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Internship Role
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Full Stack Web Development Intern"
+                    value={issueCertForm.role}
+                    onChange={(e) => setIssueCertForm({ ...issueCertForm, role: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Internship Dates */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Internship Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={issueCertForm.startDate}
+                    onChange={(e) => setIssueCertForm({ ...issueCertForm, startDate: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Internship End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={issueCertForm.endDate}
+                    onChange={(e) => setIssueCertForm({ ...issueCertForm, endDate: e.target.value, completionDate: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs font-mono"
+                  />
+                </div>
               </div>
 
               {/* Grade */}

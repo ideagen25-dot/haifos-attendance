@@ -9,6 +9,10 @@ export interface Student {
   phone: string;
   courseId: string;
   courseName: string;
+  collegeName?: string;
+  role?: string;
+  startDate?: string;
+  endDate?: string;
   batch: string; // e.g. "Batch 2026-A"
   status: 'active' | 'completed' | 'dropped';
   createdAt: string;
@@ -34,6 +38,10 @@ export interface Certificate {
   studentEmail: string;
   courseId: string;
   courseName: string;
+  collegeName?: string;
+  role?: string;
+  startDate?: string;
+  endDate?: string;
   issueDate: string; // YYYY-MM-DD
   completionDate: string; // YYYY-MM-DD
   grade: string; // "Distinction", "Grade A+", "Excellent", "Completed"

@@ -40,17 +40,28 @@ export const VerificationPage: React.FC<VerificationPageProps> = ({ settings }) 
 
     // Check if URL contains query params from email or QR code
     const handleUrlParams = () => {
-      const hash = window.location.hash;
-      const queryIdx = hash.indexOf('?');
-      if (queryIdx !== -1) {
-        const queryString = hash.slice(queryIdx + 1);
-        const params = new URLSearchParams(queryString);
-        const urlId = params.get('id');
+      let urlId: string | null = null;
 
-        if (urlId) {
-          setCertificateId(urlId);
-          executeVerification(urlId);
+      // 1. Check standard query search: ?id=...
+      if (window.location.search) {
+        const params = new URLSearchParams(window.location.search);
+        urlId = params.get('id');
+      }
+
+      // 2. Check hash query: #/?id=... or #verification?id=...
+      if (!urlId) {
+        const hash = window.location.hash;
+        const queryIdx = hash.indexOf('?');
+        if (queryIdx !== -1) {
+          const queryString = hash.slice(queryIdx + 1);
+          const params = new URLSearchParams(queryString);
+          urlId = params.get('id');
         }
+      }
+
+      if (urlId) {
+        setCertificateId(urlId);
+        executeVerification(urlId);
       }
     };
 

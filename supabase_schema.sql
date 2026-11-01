@@ -28,6 +28,10 @@ CREATE TABLE IF NOT EXISTS public.students (
     phone TEXT,
     course_id TEXT REFERENCES public.courses(id) ON DELETE SET NULL,
     course_name TEXT NOT NULL,
+    college_name TEXT,
+    role TEXT,
+    start_date DATE,
+    end_date DATE,
     batch TEXT NOT NULL,
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'dropped')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -44,6 +48,10 @@ CREATE TABLE IF NOT EXISTS public.certificates (
     student_email TEXT NOT NULL,
     course_id TEXT REFERENCES public.courses(id) ON DELETE CASCADE,
     course_name TEXT NOT NULL,
+    college_name TEXT,
+    role TEXT,
+    start_date DATE,
+    end_date DATE,
     issue_date DATE NOT NULL,
     completion_date DATE NOT NULL,
     grade TEXT NOT NULL,
@@ -137,3 +145,18 @@ ON public.admin_profiles FOR UPDATE USING (true) WITH CHECK (true);
 -- 4. Delete: Allow delete on admin_profiles
 CREATE POLICY "Allow delete on admin_profiles" 
 ON public.admin_profiles FOR DELETE USING (true);
+
+-- ========================================================
+-- 6. Schema Upgrades / Migrations for Existing Deployments
+-- Run this block if your tables were created prior to the
+-- formal letterhead certificate and internship dates release.
+-- ========================================================
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS college_name TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS role TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS start_date DATE;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS end_date DATE;
+
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS college_name TEXT;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS role TEXT;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS start_date DATE;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS end_date DATE;

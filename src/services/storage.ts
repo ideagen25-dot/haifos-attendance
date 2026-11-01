@@ -78,6 +78,10 @@ const DEFAULT_STUDENTS: Student[] = [
     phone: '+91 9876543210',
     courseId: 'course-2',
     courseName: 'Full Stack Web Development & Cloud Systems',
+    collegeName: 'National Institute of Technology, Patna',
+    role: 'Full Stack Web Development Intern',
+    startDate: '2026-01-15',
+    endDate: '2026-03-18',
     batch: 'Batch 2026-Alpha',
     status: 'completed',
     createdAt: '2026-01-10T09:00:00Z',
@@ -93,6 +97,10 @@ const DEFAULT_STUDENTS: Student[] = [
     phone: '+91 9876543211',
     courseId: 'course-1',
     courseName: 'Digital Literacy & Emerging AI Technologies',
+    collegeName: 'Indian Institute of Technology, Patna',
+    role: 'AI & Digital Systems Intern',
+    startDate: '2026-01-15',
+    endDate: '2026-03-12',
     batch: 'Batch 2026-Alpha',
     status: 'completed',
     createdAt: '2026-01-12T09:00:00Z',
@@ -108,6 +116,10 @@ const DEFAULT_STUDENTS: Student[] = [
     phone: '+91 9876543212',
     courseId: 'course-3',
     courseName: 'Python for Data Science & Rural Analytics',
+    collegeName: 'Birla Institute of Technology, Mesra',
+    role: 'Data Science & Rural Analytics Intern',
+    startDate: '2026-02-01',
+    endDate: '2026-04-01',
     batch: 'Batch 2026-Beta',
     status: 'active',
     createdAt: '2026-02-01T09:00:00Z',
@@ -123,6 +135,10 @@ const DEFAULT_STUDENTS: Student[] = [
     phone: '+91 9876543213',
     courseId: 'course-1',
     courseName: 'Digital Literacy & Emerging AI Technologies',
+    collegeName: 'Delhi Technological University',
+    role: 'Emerging Technologies Intern',
+    startDate: '2026-02-05',
+    endDate: '2026-04-05',
     batch: 'Batch 2026-Alpha',
     status: 'active',
     createdAt: '2026-02-05T09:00:00Z',
@@ -140,6 +156,10 @@ const DEFAULT_CERTIFICATES: Certificate[] = [
     studentEmail: 'rahul.sharma@example.com',
     courseId: 'course-2',
     courseName: 'Full Stack Web Development & Cloud Systems',
+    collegeName: 'National Institute of Technology, Patna',
+    role: 'Full Stack Web Development Intern',
+    startDate: '2026-01-15',
+    endDate: '2026-03-18',
     issueDate: '2026-03-20',
     completionDate: '2026-03-18',
     grade: 'Distinction (Grade A+)',
@@ -160,6 +180,10 @@ const DEFAULT_CERTIFICATES: Certificate[] = [
     studentEmail: 'priya.patel@example.com',
     courseId: 'course-1',
     courseName: 'Digital Literacy & Emerging AI Technologies',
+    collegeName: 'Indian Institute of Technology, Patna',
+    role: 'AI & Digital Systems Intern',
+    startDate: '2026-01-15',
+    endDate: '2026-03-12',
     issueDate: '2026-03-15',
     completionDate: '2026-03-12',
     grade: 'Excellence (Grade A)',
@@ -826,6 +850,10 @@ class StorageService {
           phone: cs.phone,
           courseId: cs.course_id,
           courseName: cs.course_name,
+          collegeName: cs.college_name || undefined,
+          role: cs.role || undefined,
+          startDate: cs.start_date || undefined,
+          endDate: cs.end_date || undefined,
           batch: cs.batch,
           status: cs.status,
           createdAt: cs.created_at,
@@ -846,6 +874,10 @@ class StorageService {
           studentEmail: cc.student_email,
           courseId: cc.course_id,
           courseName: cc.course_name,
+          collegeName: cc.college_name || undefined,
+          role: cc.role || undefined,
+          startDate: cc.start_date || undefined,
+          endDate: cc.end_date || undefined,
           issueDate: cc.issue_date,
           completionDate: cc.completion_date,
           grade: cc.grade,
@@ -912,6 +944,10 @@ class StorageService {
         phone: s.phone,
         course_id: s.courseId,
         course_name: s.courseName,
+        college_name: s.collegeName || null,
+        role: s.role || null,
+        start_date: s.startDate || null,
+        end_date: s.endDate || null,
         batch: s.batch,
         status: s.status,
       }));
@@ -928,6 +964,10 @@ class StorageService {
         student_email: c.studentEmail,
         course_id: c.courseId,
         course_name: c.courseName,
+        college_name: c.collegeName || null,
+        role: c.role || null,
+        start_date: c.startDate || null,
+        end_date: c.endDate || null,
         issue_date: c.issueDate,
         completion_date: c.completionDate,
         grade: c.grade,
@@ -1075,6 +1115,10 @@ class StorageService {
         phone: newStudent.phone,
         course_id: newStudent.courseId,
         course_name: newStudent.courseName,
+        college_name: newStudent.collegeName || null,
+        role: newStudent.role || null,
+        start_date: newStudent.startDate || null,
+        end_date: newStudent.endDate || null,
         batch: newStudent.batch,
         status: newStudent.status,
       }).then();
@@ -1107,6 +1151,10 @@ class StorageService {
         date_of_birth: updated.dateOfBirth,
         email: updated.email,
         phone: updated.phone,
+        college_name: updated.collegeName || null,
+        role: updated.role || null,
+        start_date: updated.startDate || null,
+        end_date: updated.endDate || null,
         status: updated.status,
       }).eq('id', id).then();
     }
@@ -1151,6 +1199,10 @@ class StorageService {
   issueCertificate(params: {
     studentId: string;
     courseId: string;
+    collegeName?: string;
+    role?: string;
+    startDate?: string;
+    endDate?: string;
     grade?: string;
     completionDate?: string;
     issueDate?: string;
@@ -1169,6 +1221,11 @@ class StorageService {
     const payload = `${certId}|${student.enrollmentNumber}|${student.fullName}|${course.title}|${params.issueDate || today}`;
     const mockHash = 'sha256-' + btoa(payload).replace(/[^a-zA-Z0-9]/g, '').slice(0, 24).toLowerCase();
 
+    const collegeName = params.collegeName || student.collegeName || 'Indian Institute of Technology';
+    const role = params.role || student.role || (course.title.toLowerCase().includes('intern') ? course.title : `${course.title} Intern`);
+    const startDate = params.startDate || student.startDate;
+    const endDate = params.endDate || student.endDate || params.completionDate || today;
+
     const newCertificate: Certificate = {
       id: certId,
       studentId: student.id,
@@ -1179,6 +1236,10 @@ class StorageService {
       studentEmail: student.email,
       courseId: course.id,
       courseName: course.title,
+      collegeName,
+      role,
+      startDate,
+      endDate,
       issueDate: params.issueDate || today,
       completionDate: params.completionDate || today,
       grade: params.grade || 'Completed with Distinction',
@@ -1211,6 +1272,10 @@ class StorageService {
         student_email: newCertificate.studentEmail,
         course_id: newCertificate.courseId,
         course_name: newCertificate.courseName,
+        college_name: newCertificate.collegeName || null,
+        role: newCertificate.role || null,
+        start_date: newCertificate.startDate || null,
+        end_date: newCertificate.endDate || null,
         issue_date: newCertificate.issueDate,
         completion_date: newCertificate.completionDate,
         grade: newCertificate.grade,
@@ -1284,6 +1349,10 @@ class StorageService {
             studentEmail: cc.student_email,
             courseId: cc.course_id,
             courseName: cc.course_name,
+            collegeName: cc.college_name || undefined,
+            role: cc.role || undefined,
+            startDate: cc.start_date || undefined,
+            endDate: cc.end_date || undefined,
             issueDate: cc.issue_date,
             completionDate: cc.completion_date,
             grade: cc.grade,
@@ -1331,6 +1400,10 @@ class StorageService {
               phone: cs.phone,
               courseId: cs.course_id,
               courseName: cs.course_name,
+              collegeName: cs.college_name || undefined,
+              role: cs.role || undefined,
+              startDate: cs.start_date || undefined,
+              endDate: cs.end_date || undefined,
               batch: cs.batch,
               status: cs.status,
               createdAt: cs.created_at,
@@ -1346,6 +1419,10 @@ class StorageService {
         const generatedCert = this.issueCertificate({
           studentId: student.id,
           courseId: student.courseId,
+          collegeName: student.collegeName,
+          role: student.role,
+          startDate: student.startDate,
+          endDate: student.endDate,
           grade: student.status === 'completed' ? 'Distinction (Grade A+)' : 'Good Standing (Grade A)',
           completionDate: new Date().toISOString().split('T')[0],
           notes: 'Official academic enrollment and verified certificate.',
