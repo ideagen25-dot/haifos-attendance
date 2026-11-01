@@ -30,3 +30,4 @@ dist-ssr
 *.sw?
 
 _legacy_lab_backup
+scratch/
