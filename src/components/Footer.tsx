@@ -44,9 +44,9 @@ export const Footer: React.FC<FooterProps> = ({ settings, setActiveTab }) => {
               className="mb-8 block"
             >
               <img
-                src="/haifos-logo.png"
+                src="/haifos-logo-white.png"
                 alt="HAIFOS"
-                className="object-contain h-16 sm:h-20 w-auto brightness-0 invert opacity-95 hover:opacity-100 transition-opacity"
+                className="object-contain h-14 sm:h-16 w-auto opacity-95 hover:opacity-100 transition-opacity"
               />
             </a>
             <p className="text-gray-400 text-sm leading-loose mb-10 max-w-xs">
